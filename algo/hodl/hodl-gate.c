@@ -58,12 +58,14 @@ char *hodl_build_stratum_request( char* req, struct work* work,
            nstartlocstr, nfinalcalcstr );
 }
 
+/*
 void hodl_set_data_size( uint32_t* data_size, uint32_t* adata_sz,
                          struct work* work )
 {
   *data_size = sizeof(work->data);
   *adata_sz  = ARRAY_SIZE(work->data);
 } 
+*/
 
 void hodl_build_extraheader( struct work* work, struct stratum_ctx *sctx )
 {
@@ -127,18 +129,14 @@ void hodl_get_pseudo_random_data( struct work* work, char* scratchbuf,
 bool register_hodl_algo ( algo_gate_t* gate )
 {
 #ifdef NO_AES_NI
-  gate->aes_ni_optimized = (void*)&return_false;
   gate->scanhash               = (void*)&scanhash_hodl;
-  gate->set_data_size          = (void*)&hodl_set_data_size;
 #else
-  gate->aes_ni_optimized = (void*)&return_true;
   gate->scanhash               = (void*)&scanhash_hodl_wolf;
 #endif
+  gate->aes_ni_optimized = (void*)&return_true;
   gate->set_target             = (void*)&hodl_set_target;
   gate->get_scratchbuf         = (void*)&hodl_get_scratchbuf;
-//  gate->reverse_endian_17_19   = (void*)&hodl_reverse_endian_17_19;
   gate->build_stratum_request  = (void*)&hodl_build_stratum_request;
-//  gate->set_data_size          = (void*)&hodl_set_data_size;
   gate->build_extraheader      = (void*)&hodl_build_extraheader;
   gate->thread_barrier_init    = (void*)&hodl_thread_barrier_init;
   gate->thread_barrier_wait    = (void*)&hodl_thread_barrier_wait;

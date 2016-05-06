@@ -1,4 +1,4 @@
-        Release 3.1.16 of cpuminer-opt is available for download.
+        Release 3.1.18 of cpuminer-opt is available for download.
 
 
 All users are encouraged to upgrade.
@@ -11,17 +11,10 @@ In addition 13 algorithms have optimizations to take advantage of
 CPUs with AES_NI for even greater performance, including the Intel
 Sandy Bridge (Core-i 2xxx) and AMD equivalent.
 
-New in v3.1.16
+New in v3.1.18
 
-  - added m7m algo
-  - new dependency on gmp
-
-New in v3.1.15
-
-  - unified build procedure fixed
-     - build.sh now works for CPUs with and without AES_NI
-     - it is no longer necessary to add -DNO_AES_NI CFLAG to the
-       configure command when building for CPUs without AES_NI.
+  - fixed compile problems with AMD CPUs with workaround, see README.md
+    for details.
 
 Recently added dependencies:
 
@@ -32,6 +25,7 @@ Recently added dependencies:
 
 Recently added algos:
 
+  - m7m
   - hodl added with support for CPUs with and without AES_NI
   - argon2 
   - decred (blake256r14)

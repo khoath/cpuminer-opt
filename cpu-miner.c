@@ -2571,7 +2571,7 @@ static void show_credits()
         printf("     Wolf0 and Jeff Garzik.\n\n");
 }
 
-void check_cpu_capability ()
+bool check_cpu_capability ()
 {
      int cpu_id[4];
      unsigned int nExIds;
@@ -2625,8 +2625,8 @@ void check_cpu_capability ()
     void printf_bad_build()
         { printf("%sIncompatible SW build, rebuild with \"-march=native\"%s\n",red,CL_N); }
     void printf_rebuild_for_faster()
-        { printf("%sCPU and algo support AES_NI, but SW build does not.%s\n",ylo,CL_N);
-          printf("%sRebuild with \"-march=native\" for better performance.%s\n",ylo,CL_N); } 
+        { printf("CPU and algo support AES_NI, but SW build does not.\n");
+          printf("Rebuild with \"-march=native\" for better performance.\n"); } 
 
 
      printf("Checking CPU capatibility...\n");
@@ -2645,11 +2645,13 @@ void check_cpu_capability ()
             {
                printf("%s\n", grn_yes);
                printf_mine_with_aes();
+               return true;
             }
             else
             {
               printf("%s\n", ylw_no );
               printf_mine_without_aes();
+              return true;
             }
          }
          else  // !sw_has_aes
@@ -2662,6 +2664,7 @@ void check_cpu_capability ()
                printf_rebuild_for_faster();
             }
          printf_mine_without_aes();
+         return true;
          }
       }
       else  // !cpu_has_aes
@@ -2673,25 +2676,28 @@ void check_cpu_capability ()
          {
             printf("%s\n", grn_yes );
             printf("   SW built for SSE2..........");
-            if ( sw_has_sse2 && !sw_has_aes )
+            if ( sw_has_aes )
             {
-                printf("%s\n", grn_yes );
-                printf_mine_without_aes();
+              printf("%s\n", ylw_no );
+              printf_bad_build();
+              return false;
             }
             else
             {
-                printf("%s\n", ylw_no );
-                printf_bad_build();
-//                exit(1);
+// check for SW build below SSE2 is unrealiable and has been removed,
+                printf("%s\n", grn_yes );
+                printf_mine_without_aes();
+                return true;
             }
          }            
          else            
          {
             printf("%s\n", ylw_no );
             printf_bad_cpu();
-//            exit(1);
+            return false;
          }
       }
+// never get here
 }
 
 void get_defconfig_path(char *out, size_t bufsize, char *argv0);
@@ -2734,7 +2740,8 @@ int main(int argc, char *argv[]) {
            exit(1);
         }
 
-        check_cpu_capability();
+        if ( !check_cpu_capability())
+           exit(1);
 
 	if (!opt_benchmark && !rpc_url) {
 		// try default config file in binary folder

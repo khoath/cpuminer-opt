@@ -2,7 +2,7 @@ This project is forked by Jay D Dee.
 
 Building on linux:
 
-Important new procedure for v3.0.3.
+Updatd for v3.1.18.
 
 Dependencies
 
@@ -13,7 +13,7 @@ libgmp
 pthreads
 zlib
 libboost
-
+gmp
 
 ./build.sh should now work for most users. If not some tips follow.
 
@@ -23,14 +23,10 @@ The manual procedure is:
 ./configure CFLAGS="-O3 -march=native" --with-crypto --with-curl
 make
 
-"-march-native" should work for most CPUS. Some have found they
-get better performance if they use the CPU's family name, ie haswell.
-
-Use was works best for you.
- 
-Some users with AMD CPUs without AES_NI have reported compile problem
-using -march=native but have had success with -march=btver1. Using
--march=core2 also seems to work but with lower performance.
+Some users with AMD CPUs without AES_NI have reported problems compiling
+with build.sh or "-march=native". Problems have included compile errors
+and poor performance. These users are recommended to compile manually
+specifying "-march=btver1" on the configure command line.
 
 Support for even older x86_64 without AES_NI or SSE2 is not availble.
 cpuminer-multi by TPruvot supports this architecture.
