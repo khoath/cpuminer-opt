@@ -317,11 +317,11 @@ static  uint64_t restart;
 
 bool register_quark_algo( algo_gate_t* gate )
 {
-  gate->init_ctx = &init_quark_ctx;
-  gate->aes_ni_optimized = (void*)&return_true;
-  gate->scanhash = (void*)&scanhash_quark;
-  gate->hash     = (void*)&quarkhash;
-  gate->hash_alt = (void*)&quarkhash_alt;
+  gate->init_ctx         = (void*)&init_quark_ctx;
+  gate->aes_ni_optimized = true;
+  gate->scanhash         = (void*)&scanhash_quark;
+  gate->hash             = (void*)&quarkhash;
+  gate->hash_alt         = (void*)&quarkhash_alt;
   return true;
 };
 

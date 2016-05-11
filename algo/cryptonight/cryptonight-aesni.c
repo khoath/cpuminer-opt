@@ -1,6 +1,8 @@
 #include <x86intrin.h>
+#include <memory.h>
 #include "cryptonight.h"
 #include "miner.h"
+#include "crypto/c_keccak.h"
 
 void aesni_parallel_noxor(uint8_t *long_state, uint8_t *text, uint8_t *ExpandedKey);
 void aesni_parallel_xor(uint8_t *text, uint8_t *ExpandedKey, uint8_t *long_state);
@@ -109,7 +111,7 @@ void cryptonight_hash_aes( void *restrict output, const void *input, int len )
 //    cn_context_holder ctx;
 //    memcpy( &ctx, &cn_ctx, sizeof(cn__ctx) );
 
-    keccak((const uint8_t *)input, 76, &ctx.state.hs, 200);
+    keccak( (const uint8_t*)input, 76, (char*)&ctx.state.hs.b, 200 );
     uint8_t ExpandedKey[256];
     size_t i, j;
     
@@ -191,7 +193,7 @@ void cryptonight_hash_aes( void *restrict output, const void *input, int len )
 	  a[0] += hi;
 	  a[1] += lo;
 	}
-	uint64_t *dst = &ctx.long_state[c[0] & 0x1FFFF0];
+	uint64_t *dst = (uint64_t*)&ctx.long_state[c[0] & 0x1FFFF0];
 	dst[0] = a[0];
 	dst[1] = a[1];
 
@@ -234,7 +236,7 @@ void cryptonight_hash_aes( void *restrict output, const void *input, int len )
 	}
         
     memcpy(ctx.state.init, ctx.text, INIT_SIZE_BYTE);
-	keccakf(&ctx.state.hs, 24);
+	keccakf( (uint64_t*)&ctx.state.hs.w, 24 );
 
 //    switch ( ctx.state.hs.b[0] & 3 )
 //    {

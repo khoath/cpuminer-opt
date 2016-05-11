@@ -34,38 +34,28 @@ bool hodl_get_scratchbuf( unsigned char** scratchbuf )
   return ( *scratchbuf != NULL );
 }
 
-/*
-void hodl_reverse_endian_17_19( uint32_t* ntime, uint32_t* nonce,
-                                struct work* work )
+char *hodl_build_stratum_request_le( char* req, struct work* work,
+                                     struct stratum_ctx *sctx ) 
 {
-    le32enc(ntime, work->data[17]);
-    le32enc(nonce, work->data[19]);
-}
-*/
+   unsigned char *xnonce2str;
+   uint32_t ntime, nonce;
+   char ntimestr[9], noncestr[9];
+   uint32_t nstartloc, nfinalcalc;
+   char nstartlocstr[9], nfinalcalcstr[9];
 
-char *hodl_build_stratum_request( char* req, struct work* work, 
-       unsigned char *xnonce2str, char* ntimestr, char* noncestr  )
-{
-     uint32_t nstartloc, nfinalcalc;
-     char nstartlocstr[9], nfinalcalcstr[9];
-
-     le32enc(&nstartloc, work->data[20]);
-     le32enc(&nfinalcalc, work->data[21]);
-     bin2hex(nstartlocstr, (const unsigned char *)(&nstartloc), 4);
-     bin2hex(nfinalcalcstr, (const unsigned char *)(&nfinalcalc), 4);
-     sprintf( req, "{\"method\": \"mining.submit\", \"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"], \"id\":4}",
+   le32enc( &ntime, work->data[17] );
+   le32enc( &nonce, work->data[19] );
+   bin2hex( ntimestr, (const unsigned char *)(&ntime), 4 );
+   bin2hex( noncestr, (const unsigned char *)(&nonce), 4 );
+   xnonce2str = abin2hex(work->xnonce2, work->xnonce2_len );
+   le32enc( &nstartloc, work->data[20] );
+   le32enc( &nfinalcalc, work->data[21] );
+   bin2hex( nstartlocstr, (const unsigned char *)(&nstartloc), 4 );
+   bin2hex( nfinalcalcstr, (const unsigned char *)(&nfinalcalc), 4 );
+   sprintf( req, "{\"method\": \"mining.submit\", \"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"], \"id\":4}",
            rpc_user, work->job_id, xnonce2str, ntimestr, noncestr,
            nstartlocstr, nfinalcalcstr );
 }
-
-/*
-void hodl_set_data_size( uint32_t* data_size, uint32_t* adata_sz,
-                         struct work* work )
-{
-  *data_size = sizeof(work->data);
-  *adata_sz  = ARRAY_SIZE(work->data);
-} 
-*/
 
 void hodl_build_extraheader( struct work* work, struct stratum_ctx *sctx )
 {
@@ -90,15 +80,23 @@ void hodl_thread_barrier_wait()
 static struct work hodl_work;
 uint32_t nNonce;
 
+uint32_t *hodl_get_nonceptr()
+{
+  return &nNonce;
+}
+
+void hodl_init_nonceptr()
+{
+   nNonce = ( clock() + rand() ) % 9999;
+}
+
 void hodl_backup_work_data( struct work* g_work )
 {
   if ( memcmp( hodl_work.data, g_work->data, 76 ) )
   {
-        work_free( &hodl_work );
-        work_copy( &hodl_work, g_work );
-   }
-//                    pthread_mutex_unlock(&g_work_lock);
-   nNonce = ( clock() + rand() ) % 9999;
+    work_free( &hodl_work );
+    work_copy( &hodl_work, g_work );
+  }
 }
 
 void hodl_restore_work_data( struct work* work )
@@ -133,16 +131,17 @@ bool register_hodl_algo ( algo_gate_t* gate )
 #else
   gate->scanhash               = (void*)&scanhash_hodl_wolf;
 #endif
-  gate->aes_ni_optimized = (void*)&return_true;
+  gate->aes_ni_optimized       = true;
   gate->set_target             = (void*)&hodl_set_target;
   gate->get_scratchbuf         = (void*)&hodl_get_scratchbuf;
-  gate->build_stratum_request  = (void*)&hodl_build_stratum_request;
+  gate->build_stratum_request  = (void*)&hodl_build_stratum_request_le;
   gate->build_extraheader      = (void*)&hodl_build_extraheader;
   gate->thread_barrier_init    = (void*)&hodl_thread_barrier_init;
   gate->thread_barrier_wait    = (void*)&hodl_thread_barrier_wait;
   gate->backup_work_data       = (void*)&hodl_backup_work_data;
   gate->restore_work_data      = (void*)&hodl_restore_work_data;
-  gate->init_nonceptr          = (void*)&do_nothing;
+  gate->init_nonceptr          = (void*)&hodl_init_nonceptr;
+  gate->get_nonceptr           = (void*)&hodl_get_nonceptr;
   gate->get_pseudo_random_data = (void*)&hodl_get_pseudo_random_data;
   gate->do_all_threads         = (void*)&hodl_do_all_threads;
   return true;

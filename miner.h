@@ -565,7 +565,7 @@ extern double opt_diff_factor;
 extern unsigned int opt_nfactor;
 extern bool opt_randomize;
 extern bool allow_mininginfo;
-
+extern time_t g_work_time;
 
 extern pthread_mutex_t rpc2_job_lock;
 extern pthread_mutex_t rpc2_login_lock;

@@ -98,6 +98,7 @@ typedef struct {
 } hashState_groestl;
 
 HashReturn_gr init_groestl(hashState_groestl*);
+HashReturn_gr reinit_groestl(hashState_groestl*);
 HashReturn_gr update_groestl(hashState_groestl*, const BitSequence_gr*, DataLength_gr);
 HashReturn_gr final_groestl(hashState_groestl*, BitSequence_gr*);
 HashReturn_gr hash_groestl(int, const BitSequence_gr*, DataLength_gr, BitSequence_gr*);

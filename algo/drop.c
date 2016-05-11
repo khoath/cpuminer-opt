@@ -217,22 +217,6 @@ void drop_set_target( struct work* work, double job_diff )
  work_set_target( work, job_diff / (65536.0 * opt_diff_factor) );
 }
  
-bool drop_ignore_pok( int* wkcmp_sz, int* wkcmp_offset )
-{
-   *wkcmp_sz -= sizeof(uint32_t);
-   *wkcmp_offset = 1;
-   return false;
-}
-
-/*
-void drop_set_data_size( uint32_t* data_size, uint32_t* adata_sz )
-{
-   *data_size = 80;
-   *adata_sz = *data_size / sizeof(uint32_t);
-
-}
-*/
-
 void reverse_drop_endian( struct work* work )
 {
   int i;
@@ -240,28 +224,10 @@ void reverse_drop_endian( struct work* work )
      work->data[i] = swab32( work->data[i] );
 }
 
-/*
-void reverse_drop_endian_17_19( uint32_t* ntime, uint32_t* nonce,
-                                struct work* work )
-{
-   be32enc( ntime, work->data[17] );
-   be32enc( nonce, work->data[19] );
-}
-*/
-
 void display_drop_pok ( struct work* work ) 
 {
       if ( work->data[0] & 0x00008000 ) 
         applog(LOG_BLUE, "POK received: %08xx", work->data[0] );
-}
-
-void drop_set_data_and_target_size( int *data_size, int *target_size,
-                                   int *adata_sz,  int *atarget_sz )
-{
-   *data_size   = 80;
-   *target_size = 32;
-   *adata_sz    = *data_size   /  sizeof(uint32_t);
-   *atarget_sz  = *target_size /  sizeof(uint32_t);
 }
 
 bool register_drop_algo( algo_gate_t* gate )
@@ -272,15 +238,12 @@ bool register_drop_algo( algo_gate_t* gate )
     gate->hash                 = (void*)&droplp_hash_pok;
     gate->hash_alt             = (void*)&droplp_hash_pok;
     gate->hash_suw             = (void*)&droplp_hash_pok;
-//    gate->set_target           = (void*)&drop_set_target;
     gate->set_target           = (void*)&scrypt_set_target;
-    gate->ignore_pok           = (void*)&drop_ignore_pok;
-    gate->suw_build_hex_string = (void*)&suw_build_hex_string_80;
-//    gate->set_data_size        = (void*)&set_data_size_80;
-    gate->set_work_data_endian = (void*)&swab_work_data;
-    gate->encode_endian_17_19  = (void*)&encode_big_endian_17_19;
-    gate->display_pok          = (void*)&display_drop_pok;
-    gate->set_data_and_target_size = (void*)&drop_set_data_and_target_size;
+//    gate->build_getwork_request    = (void*)&build_getwork_request_size80;
+    gate->build_stratum_request = (void*)&build_stratum_request_be;
+    gate->set_work_data_endian  = (void*)&swab_work_data;
+    gate->display_extra_data    = (void*)&display_drop_pok;
+    gate->data_size             = 80;
     return true;
 };
 

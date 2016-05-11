@@ -361,14 +361,10 @@ void m7mhash(void *output, const void *input)
 
 bool m7m_work_decode( const json_t *val, struct work *work )
 {
-    int i;
-    int data_size   = sizeof(work->data);
+    int data_size   = algo_gate.data_size;
     int target_size = sizeof(work->target);
     int adata_sz    = ARRAY_SIZE(work->data);
     int atarget_sz  = ARRAY_SIZE(work->target);
-
-    algo_gate.set_data_and_target_size( &data_size, &target_size,
-                                 &adata_sz,  &atarget_sz, &allow_mininginfo );
 
     if ( unlikely(!jobj_binary( val, "data", work->data, data_size )) )
     {
@@ -391,13 +387,15 @@ void m7m_reverse_endian( struct work *work )
 
 bool register_m7m_algo( algo_gate_t *gate )
 {
-  gate->init_ctx            = (void*)&init_m7m_ctx;
-  gate->scanhash            = (void*)&scanhash_m7m;
-  gate->hash                = (void*)&m7mhash;
-  gate->hash_alt            = (void*)&m7mhash;
-  gate->encode_endian_17_19 = (void*)&encode_big_endian_17_19;
-  gate->suw_build_hex_string = (void*)&set_data_size_80;
-  gate->set_target          = (void*)&scrypt_set_target;
-  gate->get_max64           = (void*)&get_max64_0x1ffff;
+  gate->init_ctx             = (void*)&init_m7m_ctx;
+  gate->scanhash             = (void*)&scanhash_m7m;
+  gate->hash                 = (void*)&m7mhash;
+  gate->hash_alt             = (void*)&m7mhash;
+//  gate->build_getwork_request = (void*)&build_getwork_request_size80;
+  gate->build_stratum_request = (void*)&build_stratum_request_be;
+  gate->set_target           = (void*)&scrypt_set_target;
+  gate->get_max64            = (void*)&get_max64_0x1ffff;
   gate->set_work_data_endian = (void*)&m7m_reverse_endian;
+  gate->data_size             = 80;
+  return true;
 }
