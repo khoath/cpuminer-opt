@@ -95,12 +95,13 @@ int64_t cryptonight_get_max64 ()
 
 bool register_cryptonight_algo( algo_gate_t* gate )
 {
-  gate->aes_ni_optimized = (void*)&return_true;
+  gate->aes_ni_optimized = true;
   gate->scanhash  = (void*)&scanhash_cryptonight;
   gate->hash      = (void*)&cryptonight_hash;
   gate->hash_suw  = (void*)&cryptonight_hash_suw;  
 //  gate->get_max64 = (void*)&cryptonight_get_max64;
   gate->get_max64 = (void*)&get_max64_0x40LL;
+  register_json_rpc2( gate );
   jsonrpc_2       = true;
   return true;
 };

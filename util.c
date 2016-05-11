@@ -26,6 +26,7 @@
 #include <curl/curl.h>
 #include <time.h>
 #include <sys/stat.h>
+//#include <syslog.h>
 #if defined(WIN32)
 #include <winsock2.h>
 #include <mstcpip.h>

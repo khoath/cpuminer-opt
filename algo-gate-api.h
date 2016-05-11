@@ -77,58 +77,51 @@ typedef struct
 {
 //migrate to use work instead of pdata & ptarget, see decred for example.
 // mandatory functions, must be overwritten
-int   *( *scanhash ) ( int, struct work*, uint32_t, uint64_t*,
+int   ( *scanhash ) ( int, struct work*, uint32_t, uint64_t*,
            unsigned char* );
 
 // optional unsafe, must be overwritten if algo uses function
-void   *( *hash )            ( void*, const void*, uint32_t ) ;
-void   *( *hash_alt )        ( void*, const void*, uint32_t );
-void   *( *hash_suw )        ( void*, const void* );
-void   *( *init_ctx )        ();
+void   ( *hash )            ( void*, const void*, uint32_t ) ;
+void   ( *hash_alt )        ( void*, const void*, uint32_t );
+void   ( *hash_suw )        ( void*, const void* );
+void   ( *init_ctx )        ();
 
-//optional, safe to use default null instance
-bool   *( *aes_ni_optimized ) ();
-// regen_work for decred
-bool   *( *ignore_pok )              ( int*, int*, int* );
-// decode_extra_data for decred
-void   *( *display_pok )             ( struct work*, uint64_t* );
-void   *( *wait_for_diff )           ( struct stratum_ctx* );
-int64_t *( *get_max64 )              ();
-bool   *( *work_decode )             ( const struct json_t*, struct work* );
-void   *( *set_target)               ( struct work*, double );
-bool   *( *get_scratchbuf )          ( unsigned char** );
-int    *( *suw_build_hex_string )    ( );
-int    *( *set_data_and_target_size )( int*, int*, int*, int*, bool* );
-void   *( *gen_merkle_root )         ( char*, struct stratum_ctx*, int*,
-                                       uint32_t*, int );
-void   *( *build_stratum_request )   ( char*, struct work*, unsigned char*,
-                                       char*, char* ); 
-void   *( *set_work_data_endian )    ( struct work* );
-// reverse_endian_34_35 for decred 
-void   *( *encode_endian_17_19 )     ( uint32_t*, uint32_t*, struct work* );
-void   *( *calc_network_diff )       ( struct work* );
-unsigned char*  *( *get_xnonce2str ) ( struct work*, size_t );
-void   *( *set_benchmark_work_data ) ( struct work* );
-void   *( *build_extraheader )       ( struct work*, struct stratum_ctx*,
-                                       uint32_t*, int );
-bool   *( *prevent_dupes )           ( uint32_t*, struct work*,
+//optional, safe to use default in most cases
+bool   ( *gen_work_now )     ( int, struct work*, struct work*, uint32_t* );
+void   ( *init_nonceptr )    ( struct work*, struct work* ,uint32_t**, int );
+uint32_t *( *get_nonceptr )   ( uint32_t* );
+void   ( *display_extra_data )      ( struct work*, uint64_t* );
+void   ( *wait_for_diff )           ( struct stratum_ctx* );
+int64_t ( *get_max64 )              ();
+bool   ( *work_decode )             ( const struct json_t*, struct work* );
+void   ( *set_target)               ( struct work*, double );
+bool   ( *get_scratchbuf )          ( unsigned char** );
+bool   ( *submit_getwork_result )   ( CURL*, struct work* );
+void   ( *stratum_gen_work )        ( struct stratum_ctx*, struct work*, int );
+void   ( *gen_merkle_root )         ( char*, struct stratum_ctx* );
+void   ( *build_stratum_request )   ( char*, struct work*, 
+                                       struct stratum_ctx* );
+void   ( *set_work_data_endian )    ( struct work* );
+void   ( *calc_network_diff )       ( struct work* );
+void   ( *build_extraheader )       ( struct work*, struct stratum_ctx* );
+bool   ( *prevent_dupes )           ( uint32_t*, struct work*,
                                        struct stratum_ctx*, int );
-void   *( *thread_barrier_init )     ();
-void   *( *thread_barrier_wait )     ();
-void   *( *backup_work_data )        ( struct work* );
-void   *( *restore_work_data )       ( struct work* );
-bool   *( *do_all_threads )          ();
-void   *( *get_pseudo_random_data )  ( struct work*, char*, int );
+void   ( *thread_barrier_init )     ();
+void   ( *thread_barrier_wait )     ();
+void   ( *backup_work_data )        ( struct work* );
+void   ( *restore_work_data )       ( struct work* );
+bool   ( *do_all_threads )          ();
+void   ( *get_pseudo_random_data )  ( struct work*, char*, int );
+json_t* (*longpoll_rpc_call)        ( CURL*, int*, char* );
+bool   ( *stratum_handle_response ) ( json_t* );
+int   data_size;
+bool  aes_ni_optimized;
 
-// special safe optional case, default is non-null, but one algo needs null
-void   *( *init_nonceptr )           ( struct work*, struct work* ,uint32_t**,
-                                       int, int, int, int );
 } algo_gate_t;
 
 extern algo_gate_t algo_gate;
 
-// Declare null instances
-
+// Declare null instances, default for many gate functions
 void do_nothing();
 bool return_true();
 bool return_false();
@@ -136,17 +129,35 @@ void *return_null();
 void algo_not_tested();
 
 // allways returns failure
-int    null_scanhash ( int thr_id, struct work* work, uint32_t max_nonce,
-              uint64_t *hashes_done, unsigned char* scratchbuf );
+int null_scanhash ( int thr_id, struct work* work, uint32_t max_nonce,
+                    uint64_t *hashes_done, unsigned char* scratchbuf );
 
 // displays warning
-void   null_hash     ( void *output, const void *pdata, uint32_t len );
-void   null_hash_alt ( void *output, const void *pdata, uint32_t len );
-void   null_hash_suw ( void *output, const void *pdata );
+void null_hash     ( void *output, const void *pdata, uint32_t len );
+void null_hash_alt ( void *output, const void *pdata, uint32_t len );
+void null_hash_suw ( void *output, const void *pdata );
+
+// optional safe
+
+bool std_gen_work_now( int thr_id, struct work *work, struct work *g_work, 
+                       uint32_t *nonceptr );
+bool jr2_gen_work_now( int thr_id, struct work *work, struct work *g_work,
+                       uint32_t *nonceptr );
+
+uint32_t *std_get_nonceptr( uint32_t *work_data );
+uint32_t *jr2_get_nonceptr( uint32_t *work_data );
+
+void std_init_nonceptr ( struct work* work, struct work* g_work,
+                         uint32_t **nonceptr, int thr_id );
+void jr2_init_nonceptr ( struct work* work, struct work* g_work,
+                         uint32_t **nonceptr, int thr_id );
+
+void std_stratum_gen_work( struct stratum_ctx *sctx, struct work *work,
+                           int thr_id );
+void jr2_stratum_gen_work( struct stratum_ctx *sctx, struct work *work );
 
 // default
-void   sha256_gen_merkle_root( char*, struct stratum_ctx* sctx,
-               int* headersize, uint32_t* extraheader, int extraheader_size );
+void   sha256d_gen_merkle_root( char* merkle_root, struct stratum_ctx* sctx );
 void   SHA256_gen_merkle_root ( char* merkle_root, struct stratum_ctx* sctx );
 
 // pick your favorite or define your own
@@ -161,37 +172,35 @@ void   scrypt_set_target( struct work* work, double job_diff );
 
 // default
 bool std_work_decode( const json_t *val, struct work *work);
+bool jr2_work_decode( const json_t *val, struct work *work);
+
+bool std_submit_getwork_result( CURL *curl, struct work *work );
+bool jr2_submit_getwork_result( CURL *curl, struct work *work );
 
 // default
-int    suw_build_hex_string_128();
-int    suw_build_hex_string_80();
-int    set_data_size_128();
-int    set_data_size_80 ();
-
-void   std_build_stratum_request( char* req, struct work* work,
-               unsigned char *xnonce2str, char* ntimestr, char* noncestr );
+void build_stratum_request_le( char *req, struct work *work );
+void build_stratum_request_be( char *req, struct work *work );
+void jr2_build_stratum_request( char* req, struct work* work );
 
 // default
 void std_set_work_data_endian( struct work *work );
 void swab_work_data( struct work *work );
 
-// default
-void   encode_little_endian_17_19( uint32_t* ntime , uint32_t* nonce,
-                                   struct work* work );
-void   encode_big_endian_17_19( uint32_t* ntime , uint32_t* nonce,
-                                struct work* work );
-
 void   std_calc_network_diff( struct work* work );
 
-unsigned char* std_get_xnonce2str( struct work* work, size_t xnonce1_size );
-void   std_set_benchmark_work_data( struct work* work );
-void   std_build_extraheader( struct work* work, struct stratum_ctx* sctx,
-                                 uint32_t* extraheader, int headersize );
+void   std_build_extraheader( struct work* work, struct stratum_ctx* sctx );
 
 // This is the default, if you need null do it yourself.
 void    std_init_nonceptr ( struct work* work, struct work* g_work,
-                            uint32_t **nonceptr, int wkcmp_offset,
-                            int wkcmp_sz, int nonce_oft, int thr_id );
+                            uint32_t **nonceptr, int thr_id );
+void    jr2_init_nonceptr ( struct work* work, struct work* g_work,
+                            uint32_t **nonceptr, int thr_id );
+
+json_t* std_longpoll_rpc_call( CURL *curl, int *err, char* lp_url );
+json_t* jr2_longpoll_rpc_call( CURL *curl, int *err );
+
+bool std_stratum_handle_response( json_t *val );
+bool jr2_stratum_handle_response( json_t *val );
 
 // Gate admin functions
 bool register_algo_gate( int algo, algo_gate_t *gate );
@@ -199,6 +208,9 @@ bool register_algo_gate( int algo, algo_gate_t *gate );
 // The register functions for all the algos can be declared here to reduce
 // compiler warnings but that's just more work for devs adding new algos.
 bool register_algo( algo_gate_t *gate );
+
+// called by algos that use rpc2
+bool register_json_rpc2( algo_gate_t *gate );
 
 // use this to call the hash function of an algo directly, ie util.c test.
 void exec_hash_function( int algo, void *output, const void *pdata );

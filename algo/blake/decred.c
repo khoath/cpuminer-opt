@@ -89,6 +89,38 @@ int scanhash_decred(int thr_id, struct work *work, uint32_t max_nonce, uint64_t 
         return 0;
 }
 
+bool decred_gen_work_now( int thr_id, struct work *work, struct work *g_work,
+                       uint32_t *nonceptr )
+{
+   return true;
+}
+
+void decred_init_nonceptr ( struct work* work, struct work* g_work,
+                          uint32_t **nonceptr, int thr_id )
+{
+   int wkcmp_sz = 140;
+   int wkcmp_offset = 0;
+
+   if ( memcmp( &work->data[wkcmp_offset], &g_work->data[wkcmp_offset],
+                    wkcmp_sz )
+          || jsonrpc_2 ? memcmp( ( (uint8_t*) work->data ) + 43,
+                                 ( (uint8_t*) g_work->data ) + 43, 33 ) : 0 )
+   {
+       work_free( work );
+       work_copy( work, g_work );
+       *nonceptr = (uint32_t*)( ( (char*)work->data ) + wkcmp_sz );
+       *nonceptr[0] = 0xffffffffU / opt_n_threads * thr_id;
+       if ( opt_randomize )
+             *nonceptr[0] += ( (rand() *4 ) & UINT32_MAX ) / opt_n_threads;
+   }
+   else
+       ++(*nonceptr[0]);
+}
+
+uint32_t *decred_get_nonceptr( uint32_t *work_data )
+{
+   return (uint32_t*) ( ((char*)work_data) + 140 );
+}
 
 
 void decred_calc_network_diff ( struct work* work )
@@ -110,17 +142,6 @@ void decred_calc_network_diff ( struct work* work )
        applog(LOG_DEBUG, "net diff: %f -> shift %u, bits %08x", net_diff, shift, bits);
 }
 
-// extra allow_mining_info arg for decred
-void decred_set_data_and_target_size( int *data_size, int *target_size,
-                                      int *adata_sz,  int *atarget_sz,
-                                      bool* allow_mininginfo )
-{
-   *data_size        = 192;
-   *adata_sz         = 180/4;
-   *allow_mininginfo = false;
-}
-
-// hooked into the display_pok gate function
 void decred_decode_extradata( struct work* work, uint64_t* net_blocks )
 {
    // some random extradata to make the work unique
@@ -144,45 +165,38 @@ void decred_decode_extradata( struct work* work, uint64_t* net_blocks )
    }
 }
 
-// hooked into the reverse_endian_17_19 gate function
-void decred_reverse_endian_34_35( uint32_t* ntime,  uint32_t* nonce,
-                                  struct work* work )
+decred_build_stratum_request_be( char *req, struct work *work,
+                                      struct stratum_ctx *sctx )
 {
-   be32enc( ntime, work->data[34] );
-   be32enc( nonce, work->data[35] );
+   unsigned char *xnonce2str;
+   uint32_t ntime, nonce;
+   char ntimestr[9], noncestr[9];
+   be32enc( &ntime, work->data[34] );
+   be32enc( &nonce, work->data[35] );
+   bin2hex( ntimestr, (const unsigned char *)(&ntime), 4 );
+   bin2hex( noncestr, (const unsigned char *)(&nonce), 4 );
+   xnonce2str = abin2hex( (unsigned char*)(&work->data[36]),
+                                     sctx->xnonce1_size );
+   snprintf( req, JSON_BUF_LEN,
+        "{\"method\": \"mining.submit\", \"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\"], \"id\":4}",
+         rpc_user, work->job_id, xnonce2str, ntimestr, noncestr );
+   free(xnonce2str);
 }
 
-unsigned char* decred_get_xnonce2str( struct work* work, size_t xnonce1_size )
-{
-   return abin2hex((unsigned char*)(&work->data[36]), xnonce1_size );
-}
+// data shared between gen_merkle_root and build_extraheader.
+uint32_t decred_extraheader[32] = { 0 };
+int decred_headersize = 0;
 
-/*
-void decred_set_data_size( int* data_size, int* adata_sz )
-{
-  *data_size = 192;
-  *adata_sz  = 180 / 4;
-}
-*/
-
-int  decred_suw_build_hex_string( struct work *work )
-{
-  for ( int i = 0; i < 180 / sizeof(uint32_t); i++ )
-     le32enc( &work->data[i], work->data[i] );
-  return 192;
-}
-
-void decred_gen_merkle_root( char* merkle_root, struct stratum_ctx* sctx,
-                 int* headersize, uint32_t* extraheader, int extraheader_size )
+void decred_gen_merkle_root( char* merkle_root, struct stratum_ctx* sctx )
 {
    // getwork over stratum, getwork merkle + header passed in coinb1
    memcpy(merkle_root, sctx->job.coinbase, 32);
-   *headersize = min((int)sctx->job.coinbase_size - 32, extraheader_size );
-   memcpy( extraheader, &sctx->job.coinbase[32], *headersize);
+   decred_headersize = min((int)sctx->job.coinbase_size - 32, 
+                  sizeof(decred_extraheader) );
+   memcpy( decred_extraheader, &sctx->job.coinbase[32], decred_headersize);
 }
 
-void decred_build_extraheader( struct work* work, struct stratum_ctx* sctx,
-                                uint32_t* extraheader, int headersize )
+void decred_build_extraheader( struct work* work, struct stratum_ctx* sctx )
 {
    uint32_t* extradata = (uint32_t*) sctx->xnonce1;
 
@@ -191,8 +205,8 @@ void decred_build_extraheader( struct work* work, struct stratum_ctx* sctx,
       work->data[1 + i] = swab32(work->data[1 + i]);
    for (i = 0; i < 8; i++) // merkle
       work->data[9 + i] = swab32(work->data[9 + i]);
-   for (i = 0; i < headersize/4; i++) // header
-      work->data[17 + i] = extraheader[i];
+   for (i = 0; i < decred_headersize/4; i++) // header
+      work->data[17 + i] = decred_extraheader[i];
    // extradata
    for (i = 0; i < sctx->xnonce1_size/4; i++)
       work->data[36 + i] = extradata[i];
@@ -202,15 +216,6 @@ void decred_build_extraheader( struct work* work, struct stratum_ctx* sctx,
    sctx->bloc_height = work->data[32];
    //applog_hex(work->data, 180);
    //applog_hex(&work->data[36], 36);
-}
-
-// hooked into ingore_pok function
-bool decred_regen_work( int *wkcmp_sz, int* wkcmp_offset,
-                            int* nonce_oft )
-{
-   *wkcmp_sz  = 140;
-   *nonce_oft = 140; // 35 * 4
-   return true; // ntime not changed ?
 }
 
 bool decred_prevent_dupes( uint32_t* nonceptr, struct work* work, struct stratum_ctx* stratum, int thr_id )
@@ -225,32 +230,24 @@ bool decred_prevent_dupes( uint32_t* nonceptr, struct work* work, struct stratum
    return false;
 }
 
-/*
-int64_t decred_get_max64 ()
-{
-   return 0x3fffffLL;
-}
-*/
-
 bool register_decred_algo( algo_gate_t* gate )
 {
 //  gate->init_ctx = &init_blakecoin_ctx;
-  gate->scanhash                 = (void*)&scanhash_decred;
-  gate->hash                     = (void*)&decred_hash;
-  gate->hash_alt                 = (void*)&decred_hash;
-//  gate->get_max64                = (void*)&decred_get_max64;
-  gate->get_max64                = (void*)&get_max64_0x3fffffLL;
-  gate->set_data_and_target_size = (void*)&decred_set_data_and_target_size;
-  gate->display_pok              = (void*)&decred_decode_extradata;
-  gate->get_xnonce2str           = (void*)&decred_get_xnonce2str;
-  gate->encode_endian_17_19      = (void*)&decred_reverse_endian_34_35; 
-//  gate->set_data_size            = (void*)&decred_set_data_size;
-  gate->suw_build_hex_string     = (void*)&decred_suw_build_hex_string;
-  gate->gen_merkle_root          = (void*)&decred_gen_merkle_root;
-  gate->build_extraheader        = (void*)&decred_build_extraheader;
-  gate->ignore_pok               = (void*)&decred_regen_work;
-  gate->prevent_dupes            = (void*)&decred_prevent_dupes;
-  have_gbt        = false;
+  gate->scanhash               = (void*)&scanhash_decred;
+  gate->hash                   = (void*)&decred_hash;
+  gate->hash_alt               = (void*)&decred_hash;
+  gate->gen_work_now           = (void*)&decred_gen_work_now;
+  gate->init_nonceptr          = (void*)&decred_init_nonceptr;
+  gate->get_nonceptr           = (void*)&decred_get_nonceptr;
+  gate->get_max64              = (void*)&get_max64_0x3fffffLL;
+  gate->display_extra_data     = (void*)&decred_decode_extradata;
+  gate->build_stratum_request = (void*)&decred_build_stratum_request_be;
+  gate->gen_merkle_root       = (void*)&decred_gen_merkle_root;
+  gate->build_extraheader     = (void*)&decred_build_extraheader;
+  gate->prevent_dupes         = (void*)&decred_prevent_dupes;
+  gate->data_size             = 192;
+  allow_mininginfo            = false;
+  have_gbt                    = false;
   return true;
 }
 

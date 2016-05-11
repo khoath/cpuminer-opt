@@ -2,7 +2,7 @@
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <x86intrin.h>
-
+#include "wolf-aes.h"
 #include "hodl-wolf.h"
 #include "miner.h"
 //#include "wolf-aes.h"
