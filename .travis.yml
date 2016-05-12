@@ -16,5 +16,5 @@ before_script:
   - autoreconf -f -i -v
 
 script:
-  - CFLAGS="-O3 -maes -mssse3 -mtune=intel -DUSE_ASM" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-crypto --with-curl || cat config.log
+  - CFLAGS="-O3 -maes -mssse3 -mtune=generic -DUSE_ASM" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-crypto --with-curl || cat config.log
   - make
