@@ -1,4 +1,4 @@
-CPUMiner-opt
+CPUMiner-opt [![Build Status](https://travis-ci.org/hmage/cpuminer-opt.svg?branch=master)](https://travis-ci.org/hmage/cpuminer-opt)
 ============
 
 This is a multi-threaded CPU miner, fork of [pooler](//github.com/pooler)'s cpuminer (see AUTHORS for list of contributors).
