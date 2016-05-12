@@ -1,16 +1,20 @@
-language: c
+language: cpp
 
 compiler:
   - gcc
+  - clang
 
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install libcurl4-openssl-dev
+addons:
+  apt:
+    packages:
+    - libcurl4-openssl-dev
+    - libssl-dev
+    - libjansson-dev
+    - libgmp-dev
 
 before_script:
-  - ./autogen.sh
+  - autoreconf -f -i -v
 
 script:
-  - ./configure --with-crypto --with-curl
+  - CFLAGS="-O3 -maes -mssse3 -mtune=intel -DUSE_ASM" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-crypto --with-curl
   - make
-  - ./cpuminer --cputest
