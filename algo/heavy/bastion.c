@@ -139,7 +139,6 @@ int scanhash_bastion(int thr_id, struct work *work, uint32_t max_nonce, uint64_t
 
 bool register_bastion_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = (void*)&init_x13_ctx;
   gate->scanhash = (void*)&scanhash_bastion;
   gate->hash     = (void*)&bastionhash;
   gate->hash_alt = (void*)&bastionhash;

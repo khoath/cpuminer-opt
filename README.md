@@ -31,7 +31,8 @@ specifying "-march=btver1" on the configure command line.
 Support for even older x86_64 without AES_NI or SSE2 is not availble.
 cpuminer-multi by TPruvot supports this architecture.
 
-Windows is not supported at this time.
+Windows is not supported at this time. However cpuminer-opt will run
+in a virtual machine such as Virtualbox at the same level of performance.
 
 The rest of this file is taken from cpuminer-multi.
 

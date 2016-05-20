@@ -97,29 +97,21 @@ int scanhash_groestl(int thr_id, struct work *work,
 	return 0;
 }
 
-/*
-unsigned char groestl_gen_merkle_root ( char* merkle_root, struct stratum_ctx* sctx )
-{
- SHA256( sctx->job.coinbase, (int)sctx->job.coinbase_size, merkle_root );
-}
-*/
-
 void groestl_set_target( struct work* work, double job_diff )
 {
  work_set_target( work, job_diff / (256.0 * opt_diff_factor) );
 }
 
-
 bool register_groestl_algo( algo_gate_t* gate )
 {
-    gate->init_ctx   = (void*)&init_groestl_ctx;
-    gate->scanhash   = (void*)&scanhash_groestl;
-    gate->hash       = (void*)&groestlhash;
-    gate->hash_alt   = (void*)&groestlhash;
-    gate->set_target = (void*)&groestl_set_target;
-//    gate->gen_merkle_root = (void*)&groestl_gen_merkle_root;
+//    gate->init_ctx        = (void*)&init_groestl_ctx;
+    init_groestl_ctx();
+    gate->scanhash        = (void*)&scanhash_groestl;
+    gate->hash            = (void*)&groestlhash;
+    gate->hash_alt        = (void*)&groestlhash;
+    gate->set_target      = (void*)&groestl_set_target;
     gate->gen_merkle_root = (void*)&SHA256_gen_merkle_root;
-    gate->get_max64  = (void*)&get_max64_0x3ffff;
+    gate->get_max64       = (void*)&get_max64_0x3ffff;
     return true;
 };
 

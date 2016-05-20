@@ -1043,11 +1043,10 @@ static bool fulltest_le(const uint *hash, const uint *target)
 
 int scanhash_neoscrypt( int thr_id, struct work *work,
       uint32_t max_nonce, uint64_t *hashes_done )
-//      uint32_t max_nonce, uint64_t *hashes_done, uint32_t profile )
 
 {
-        uint32_t *pdata = work->data;
-        uint32_t *ptarget = work->target;
+    uint32_t *pdata = work->data;
+    uint32_t *ptarget = work->target;
     uint32_t _ALIGN(64) hash[8];
     const uint32_t Htarg = ptarget[7];
     const uint32_t first_nonce = pdata[19];
@@ -1096,16 +1095,15 @@ void neoscrypt_wait_for_diff( struct stratum_ctx *stratum )
 
 bool register_neoscrypt_algo( algo_gate_t* gate )
 {
-  gate->scanhash             = (void*)&scanhash_neoscrypt;
-  gate->hash                 = (void*)&neoscrypt;
-  gate->hash_alt             = (void*)&neoscrypt;
-  gate->get_max64            = (void*)&get_neoscrypt_max64;
-  gate->set_target           = (void*)&scrypt_set_target;
-  gate->wait_for_diff        = (void*)&neoscrypt_wait_for_diff;
-//  gate->build_getwork_request    = (void*)&build_getwork_request_size80;
-  gate->build_stratum_request = (void*)&build_stratum_request_be;
-  gate->set_work_data_endian = (void*)&swab_work_data;
-  gate->data_size                = 80;
+  gate->scanhash              = (void*)&scanhash_neoscrypt;
+  gate->hash                  = (void*)&neoscrypt;
+  gate->hash_alt              = (void*)&neoscrypt;
+  gate->get_max64             = (void*)&get_neoscrypt_max64;
+  gate->set_target            = (void*)&scrypt_set_target;
+  gate->wait_for_diff         = (void*)&neoscrypt_wait_for_diff;
+  gate->build_stratum_request = (void*)&std_be_build_stratum_request;
+  gate->set_work_data_endian  = (void*)&swab_work_data;
+  gate->data_size             = 80;
   return true;
 };
 

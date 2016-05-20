@@ -445,6 +445,7 @@ enum algos {
         ALGO_FRESH,       
         ALGO_GROESTL,     
         ALGO_HEAVY,
+        ALGO_HMQ1725,
         ALGO_HODL,
         ALGO_KECCAK,
         ALGO_LUFFA,       
@@ -493,6 +494,7 @@ static const char *algo_names[] = {
         "fresh",
         "groestl",
         "heavy",
+        "hmq1725",
         "hodl",
         "keccak",
         "luffa",
@@ -591,6 +593,7 @@ Options:\n\
                           drop         Dropcoin\n\
                           fresh        Fresh\n\
                           groestl      groestl\n\
+                          hmq1725      Espers\n\
                           hodl         hodlcoin\n\
                           heavy        Heavy\n\
                           keccak       Keccak\n\

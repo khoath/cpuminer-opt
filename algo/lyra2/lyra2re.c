@@ -102,7 +102,8 @@ void lyra2re_set_target ( struct work* work, double job_diff )
 
 bool register_lyra2re_algo( algo_gate_t* gate )
 {
-  gate->init_ctx   = (void*)&init_lyra2re_ctx;
+//  gate->init_ctx   = (void*)&init_lyra2re_ctx;
+  init_lyra2re_ctx();
   gate->scanhash   = (void*)&scanhash_lyra2re;
   gate->hash       = (void*)&lyra2re_hash;
   gate->hash_alt   = (void*)&lyra2re_hash;

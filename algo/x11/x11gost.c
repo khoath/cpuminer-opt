@@ -182,9 +182,9 @@ int scanhash_sib(int thr_id, struct work *work,
 bool register_sib_algo( algo_gate_t* gate )
 {
     gate->aes_ni_optimized = true;
+    init_sib_ctx();
     gate->scanhash = (void*)&scanhash_sib;
     gate->hash     = (void*)&sibhash;
     gate->hash_alt = (void*)&sibhash;
-    gate->init_ctx = (void*)&init_sib_ctx;
     gate->get_max64 = (void*)&get_max64_0x3ffff;
 }

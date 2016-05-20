@@ -772,14 +772,7 @@ int64_t scrypt_get_max64()
      return max64;
 }
 
-/*
-void scrypt_set_target( struct work* work, double job_diff )
-{
-  work_set_target( work, job_diff / (65536.0 * opt_diff_factor) );
-}
-*/
-
-bool get_scrypt_scratchbuf( char** scratchbuf )
+bool scrypt_alloc_scratchbuf( char** scratchbuf )
 {
   *scratchbuf = scrypt_buffer_alloc( opt_scrypt_n );
   return  NULL == *scratchbuf ? false : true;
@@ -787,12 +780,12 @@ bool get_scrypt_scratchbuf( char** scratchbuf )
  
 bool register_scrypt_algo( algo_gate_t* gate )
 {
-  gate->scanhash       = (void*)&scanhash_scrypt;
-  gate->hash           = (void*)&scrypt_1024_1_1_256_24way;
-  gate->hash_alt       = (void*)&scrypt_1024_1_1_256_24way;
-  gate->set_target     = (void*)&scrypt_set_target;
-  gate->get_scratchbuf = (void*)&get_scrypt_scratchbuf;
-  gate->get_max64      = (void*)&scrypt_get_max64;
+  gate->scanhash         = (void*)&scanhash_scrypt;
+  gate->hash             = (void*)&scrypt_1024_1_1_256_24way;
+  gate->hash_alt         = (void*)&scrypt_1024_1_1_256_24way;
+  gate->set_target       = (void*)&scrypt_set_target;
+  gate->alloc_scratchbuf = (void*)&scrypt_alloc_scratchbuf;
+  gate->get_max64        = (void*)&scrypt_get_max64;
   if ( opt_nfactor == 0 )
     opt_nfactor = 6;
   return true;

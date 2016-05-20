@@ -10,6 +10,7 @@ void blakecoin_close(void *cc, void *dst);
 #include <string.h>
 #include <stdint.h>
 #include <memory.h>
+#include <openssl/sha.h>
 
 /* Move init out of loop, so init once externally,
  * and then use one single memcpy */
@@ -111,11 +112,9 @@ int64_t blakecoin_get_max64 ()
 bool register_blakecoin_algo( algo_gate_t* gate )
 {
   algo_not_tested();
-//  gate->init_ctx = &init_blakecoin_ctx;
   gate->scanhash = (void*)&scanhash_blakecoin;
   gate->hash     = (void*)&blakecoinhash;
   gate->hash_alt = (void*)&blakecoinhash;
-//  gate->gen_merkle_root = (void*)&blakecoin_gen_merkle_root;
   gate->gen_merkle_root = (void*)&SHA256_gen_merkle_root;
   gate->get_max64 = (void*)&blakecoin_get_max64;
   return true;
@@ -124,11 +123,9 @@ bool register_blakecoin_algo( algo_gate_t* gate )
 // vanilla uses default gen merkle root, otherwise identical to blakecoin
 bool register_vanilla_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_blakecoin_ctx;
     gate->scanhash = (void*)&scanhash_blakecoin;
     gate->hash     = (void*)&blakecoinhash;
     gate->hash_alt = (void*)&blakecoinhash;
-//    gate->gen_merkle_root = &blakecoin_gen_merkle_root;
     gate->get_max64 = (void*)&blakecoin_get_max64;
     return true;
 }

@@ -249,10 +249,10 @@ int scanhash_c11(int thr_id, struct work *work,
 bool register_c11_algo( algo_gate_t* gate )
 {
   gate->aes_ni_optimized = true;
+  init_c11_ctx();
   gate->scanhash = (void*)&scanhash_c11;
   gate->hash     = (void*)&c11hash;
   gate->hash_alt = (void*)&c11hash;
-  gate->init_ctx = (void*)&init_c11_ctx;
   gate->get_max64 = (void*)&get_max64_0x3ffff;
   return true;
 };
