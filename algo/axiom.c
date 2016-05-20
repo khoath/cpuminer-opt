@@ -79,20 +79,11 @@ int scanhash_axiom(int thr_id, struct work *work,
 	return 0;
 }
 
-/*
-int64_t axiom_get_max64()
-{
-  return 0x40LL;
-}
-*/
-
 bool register_axiom_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_axiom_ctx;
     gate->scanhash  = (void*)&scanhash_axiom;
     gate->hash      = (void*)&axiomhash;
     gate->hash_alt  = (void*)&axiomhash;
-//    gate->get_max64 = (void*)&axiom_get_max64;
     gate->get_max64 = (void*)&get_max64_0x40LL;
     return true;
 }

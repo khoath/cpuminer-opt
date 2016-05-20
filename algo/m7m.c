@@ -385,17 +385,19 @@ void m7m_reverse_endian( struct work *work )
       be32enc( &work->data[i], work->data[i] );
 }
 
+// names seem reversed, m7mhash calls scanhash_m7m?
+
 bool register_m7m_algo( algo_gate_t *gate )
 {
-  gate->init_ctx             = (void*)&init_m7m_ctx;
-  gate->scanhash             = (void*)&scanhash_m7m;
-  gate->hash                 = (void*)&m7mhash;
-  gate->hash_alt             = (void*)&m7mhash;
-//  gate->build_getwork_request = (void*)&build_getwork_request_size80;
-  gate->build_stratum_request = (void*)&build_stratum_request_be;
-  gate->set_target           = (void*)&scrypt_set_target;
-  gate->get_max64            = (void*)&get_max64_0x1ffff;
-  gate->set_work_data_endian = (void*)&m7m_reverse_endian;
+//  gate->init_ctx              = (void*)&init_m7m_ctx;
+  init_m7m_ctx();
+  gate->scanhash              = (void*)&scanhash_m7m;
+  gate->hash                  = (void*)&m7mhash;
+  gate->hash_alt              = (void*)&m7mhash;
+  gate->build_stratum_request = (void*)&std_be_build_stratum_request;
+  gate->set_target            = (void*)&scrypt_set_target;
+  gate->get_max64             = (void*)&get_max64_0x1ffff;
+  gate->set_work_data_endian  = (void*)&m7m_reverse_endian;
   gate->data_size             = 80;
   return true;
 }

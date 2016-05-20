@@ -253,8 +253,8 @@ void quarkhash_alt(void *state, const void *input)
         memcpy(state, hash, 32);
 }
 
-int scanhash_quark(int thr_id, struct work *work,
-	uint32_t max_nonce, uint64_t *hashes_done)
+int scanhash_quark( int thr_id, struct work *work, uint32_t max_nonce,
+                    uint64_t *hashes_done)
 {
         uint32_t *pdata = work->data;
         uint32_t *ptarget = work->target;
@@ -265,28 +265,12 @@ int scanhash_quark(int thr_id, struct work *work,
 	uint32_t hash64[8] __attribute__((aligned(32)));
 	uint32_t endiandata[32];
 
-static  uint64_t nonce_err = 0;
-static  uint64_t rate;
-static  uint64_t restart;
-
-//         #ifndef NO_AES_NI
-//         init_groestl( &quark_groestl_ctx ); 
-//         #endif
-
-	//we need bigendian data...
-	//lessons learned: do NOT endianchange directly in pdata, this will all proof-of-works be considered as stale from minerd.... 
-
 	int kk=0;
 	for (; kk < 32; kk++)
 	{
 		be32enc(&endiandata[kk], ((uint32_t*)pdata)[kk]);
 	};
 
-//	if (opt_debug) 
-//	{
-//		applog(LOG_DEBUG, "Thr: %02d, firstN: %08x, maxN: %08x, ToDo: %d", thr_id, first_nonce, max_nonce, max_nonce-first_nonce);
-//	}
-	
 	do {
 		pdata[19] = ++n;
 		be32enc(&endiandata[19], n); 
@@ -296,28 +280,19 @@ static  uint64_t restart;
                   if (fulltest(hash64, ptarget)) 
                   {
                     *hashes_done = n - first_nonce + 1;
-//printf("restart= %u,   nonce errors= %u \n",restart,nonce_err);
-//restart = 0;
-//nonce_err = 0;
 		    return true;
-                  }
-                  else
-                  {
-                    nonce_err++;
-//                    applog(LOG_INFO, "Result does not validate on CPU!");
                   }
                }
 	} while (n < max_nonce && !work_restart[thr_id].restart);
 	
 	*hashes_done = n - first_nonce + 1;
 	pdata[19] = n;
-//restart++;
 	return 0;
 }
 
 bool register_quark_algo( algo_gate_t* gate )
 {
-  gate->init_ctx         = (void*)&init_quark_ctx;
+  init_quark_ctx();
   gate->aes_ni_optimized = true;
   gate->scanhash         = (void*)&scanhash_quark;
   gate->hash             = (void*)&quarkhash;

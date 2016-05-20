@@ -212,37 +212,58 @@ int scanhash_drop(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *h
 	return 0;
 }
 
+void drop_init_nonce( struct work* work, struct work* g_work, int thr_id )
+{
+   // ignore POK in first word
+// const int nonce_i = 19;
+   const int wkcmp_sz = 72;  // (19-1) * (sizeof)uint32_t
+   uint32_t *nonceptr = algo_gate.get_nonceptr( work->data );
+   if ( memcmp( &work->data[1], &g_work->data[1], wkcmp_sz ) )
+   {
+       work_free( work );
+       work_copy( work, g_work );
+       *nonceptr = 0xffffffffU / opt_n_threads * thr_id;
+       if ( opt_randomize )
+          *nonceptr += ( (rand() *4 ) & UINT32_MAX ) / opt_n_threads;
+   }
+   else
+       ++(*nonceptr);
+}
+
+bool drop_gen_work_now( int thr_id, struct work *work, struct work *g_work )
+{
+   uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
+   // ignore POK in first word
+   const int wkcmp_sz = 72;  // (19-1) * (sizeof)uint32_t
+   return ( *(algo_gate.get_nonceptr( work->data ) ) >= end_nonce
+           && !( memcmp( &work->data[1], &g_work->data[1], wkcmp_sz ) ) );
+}
+
 void drop_set_target( struct work* work, double job_diff )
 {
  work_set_target( work, job_diff / (65536.0 * opt_diff_factor) );
 }
  
-void reverse_drop_endian( struct work* work )
-{
-  int i;
-  for (i = 0; i <= 18; i++)
-     work->data[i] = swab32( work->data[i] );
-}
-
-void display_drop_pok ( struct work* work ) 
+void drop_display_pok( struct work* work ) 
 {
       if ( work->data[0] & 0x00008000 ) 
         applog(LOG_BLUE, "POK received: %08xx", work->data[0] );
 }
 
+// Need to fix POK offset problems like zr5
 bool register_drop_algo( algo_gate_t* gate )
 {
     algo_not_tested();
-//  gate->init_ctx = &init_drop_ctx;
-    gate->scanhash             = (void*)&scanhash_drop;
-    gate->hash                 = (void*)&droplp_hash_pok;
-    gate->hash_alt             = (void*)&droplp_hash_pok;
-    gate->hash_suw             = (void*)&droplp_hash_pok;
-    gate->set_target           = (void*)&scrypt_set_target;
-//    gate->build_getwork_request    = (void*)&build_getwork_request_size80;
-    gate->build_stratum_request = (void*)&build_stratum_request_be;
+    gate->scanhash              = (void*)&scanhash_drop;
+    gate->hash                  = (void*)&droplp_hash_pok;
+    gate->hash_alt              = (void*)&droplp_hash_pok;
+    gate->hash_suw              = (void*)&droplp_hash_pok;
+    gate->init_nonce            = (void*)&drop_init_nonce;
+    gate->gen_work_now          = (void*)&drop_gen_work_now;
+    gate->set_target            = (void*)&scrypt_set_target;
+    gate->build_stratum_request = (void*)&std_be_build_stratum_request;
     gate->set_work_data_endian  = (void*)&swab_work_data;
-    gate->display_extra_data    = (void*)&display_drop_pok;
+    gate->display_extra_data    = (void*)&drop_display_pok;
     gate->data_size             = 80;
     return true;
 };

@@ -78,7 +78,6 @@ int64_t skein2_get_max64 ()
 
 bool register_skein2_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx  = &init_skein2_ctx;
   gate->scanhash  = (void*)&scanhash_skein2;
   gate->hash      = (void*)&skein2hash;
   gate->get_max64 = (void*)&skein2_get_max64;

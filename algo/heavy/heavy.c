@@ -101,13 +101,9 @@ int scanhash_heavy(int thr_id, uint32_t *pdata, const uint32_t *ptarget,
     *hashes_done = pdata[19] - start_nonce;
     return 0;
 }
-/*
-unsigned char heavy_gen_merkle_root ( char* merkle_root, stratum_cts* ctx )
-{ heavyhash(merkle_root, sctx->job.coinbase, (int)sctx->job.coinbase_size); }
-*/
+
 bool register_heavy_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_heavy_ctx;
     gate->scanhash = (void*)&scanhash_heavy;
     gate->hash     = (void*)&heavyhash;
     return true;

@@ -1,4 +1,4 @@
-        Release 3.2.1 of cpuminer-opt is available for download.
+        Release 3.2.3 of cpuminer-opt is available for download.
 
 
 All users are encouraged to upgrade.
@@ -11,20 +11,9 @@ In addition 13 algorithms have optimizations to take advantage of
 CPUs with AES_NI for even greater performance, including the Intel
 Sandy Bridge (Core-i 2xxx) and AMD equivalent.
 
-New in v3.2.1
+New in v3.2.4
 
-- zr5 algo: fixed duplicate shares
-- decred algo: fixed invalid extranonce2 suffix
-- x17 algo: pool tested, fully supported
-
-New in v3.2
-
-For devs:
-   - some RPC2 functions now use algo_gate
-   - significant restructuring of algo_gate with realignment and
-     renaming of many functions to be more descriptive and logical.
-     Some functions were removed or replaced with variables.
-   - code cleanup, fixed some compile warnings.
+- algo hmq17255 (espers) +56% (AES_NI), +17% (SSE2) over cpuminer-hmq1725.
 
 Users with non-SSE2 CPUs or who want to mine algos not supported by
 cpuminer-opt may find cpuminer-multi by TPruvot useful.
@@ -54,6 +43,7 @@ zr5             850      650          1.15
 x11gost         540      404          0.73
 c11             733      475          0.99
 myr-gr         1572     1560          2.12
+hmq1725         214      161          0.29
 cryptonight     290 H    165 H        0.00039
 hodl            275      200 H        0.00037
 neoscrypt       (4)       32 K        0.043
@@ -82,7 +72,7 @@ drop(2)         (4)      934 K        1.26
 fresh(2)        (4)      528 K        0.71
 
 Footnotes:
-(1) SSE2 rates are simulated in software.
+(1) SSE2 rates are simulated in software (-march=core2).
 (2) benchmark tested only
 (3) CPU architecture not supported for algo. It won't work.
 (4) AES_NI Optimization not available for CPU artchitecture. Uses SSE2, slower.

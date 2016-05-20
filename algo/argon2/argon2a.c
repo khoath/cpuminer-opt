@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-
+#include <openssl/sha.h>
 #include "ar2/argon2.h"
 #include "ar2/cores.h"
 #include "ar2/ar2-scrypt-jane.h"
@@ -75,16 +75,6 @@ int scanhash_argon2(int thr_id, struct work* work, uint32_t max_nonce, uint64_t 
 	return 0;
 }
 
-void argon2_gen_merkle_root ( char* merkle_root, struct stratum_ctx* sctx )
-{
- SHA256( sctx->job.coinbase, (int)sctx->job.coinbase_size, merkle_root );
-}
-
-void argon2_set_target( struct work* work, double job_diff )
-{
- work_set_target( work, job_diff / (65536.0 * opt_diff_factor) );
-}
-
 int64_t argon2_get_max64 ()
 {
   return 0x1ffLL;
@@ -94,8 +84,8 @@ bool register_argon2_algo( algo_gate_t* gate )
 {
   gate->scanhash        = (void*)&scanhash_argon2;
   gate->hash            = (void*)&argon2hash;
-  gate->gen_merkle_root = (void*)&argon2_gen_merkle_root;
-  gate->set_target      = (void*)&argon2_set_target;
+  gate->gen_merkle_root = (void*)&SHA256_gen_merkle_root;
+  gate->set_target      = (void*)&scrypt_set_target;
   gate->get_max64       = (void*)&argon2_get_max64;
   return true;
 };

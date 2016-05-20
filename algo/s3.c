@@ -107,7 +107,7 @@ int scanhash_s3(int thr_id, struct work *work, uint32_t max_nonce,
 
 bool register_s3_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_s3_ctx;
+    algo_not_tested();
     gate->scanhash = (void*)&scanhash_s3;
     gate->hash     = (void*)&s3hash;
     gate->hash_alt = (void*)&s3hash;

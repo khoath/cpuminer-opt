@@ -26,22 +26,15 @@ void skeinhash(void *state, const void *input)
 {
      skein_ctx_holder ctx;
      memcpy( &ctx, &skein_ctx, sizeof(skein_ctx) );
-
-// 	sph_skein512_context ctx_skein;
-//	SHA256_CTX sha256;
-
-	uint32_t hash[16];
+     uint32_t hash[16];
 	
-//	sph_skein512_init(&ctx_skein);
-	sph_skein512(&ctx.skein, input, 80);
-	sph_skein512_close(&ctx.skein, hash);
+     sph_skein512(&ctx.skein, input, 80);
+     sph_skein512_close(&ctx.skein, hash);
 
-//	SHA256_Init(&sha256);
-	SHA256_Update(&ctx.sha256, hash, 64);
-	SHA256_Final((unsigned char*) hash, &ctx.sha256);
+     SHA256_Update(&ctx.sha256, hash, 64);
+     SHA256_Final((unsigned char*) hash, &ctx.sha256);
 
-	memcpy(state, hash, 32);
-
+     memcpy(state, hash, 32);
 }
 
 int scanhash_skein(int thr_id, struct work *work,
@@ -79,12 +72,12 @@ int scanhash_skein(int thr_id, struct work *work,
 	return 0;
 }
 
-int64_t skein_get_max64 ()
-{ return 0x7ffffLL; }
+int64_t skein_get_max64() { return 0x7ffffLL; }
 
 bool register_skein_algo( algo_gate_t* gate )
 {
-    gate->init_ctx  = (void*)&init_skein_ctx;
+//    gate->init_ctx  = (void*)&init_skein_ctx;
+    init_skein_ctx();
     gate->scanhash  = (void*)&scanhash_skein;
     gate->hash      = (void*)&skeinhash;
     gate->get_max64 = (void*)&skein_get_max64;

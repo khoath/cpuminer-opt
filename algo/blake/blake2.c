@@ -62,7 +62,6 @@ int64_t blake2s_get_max64 ()
 
 bool register_blake2s_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_blake2s_ctx;
   gate->scanhash  = (void*)&scanhash_blake2s;
   gate->hash      = (void*)&blake2s_hash;
   gate->get_max64 = (void*)&blake2s_get_max64;

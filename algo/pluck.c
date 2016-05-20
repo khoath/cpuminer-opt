@@ -490,9 +490,8 @@ void pluck_set_target( struct work* work, double job_diff )
  work_set_target( work, job_diff / (65536.0 * opt_diff_factor) );
 }
 
-bool get_pluck_scratchbuf( char** scratchbuf )
+bool pluck_alloc_scratchbuf( char** scratchbuf )
 { 
-//  scratchbuf = malloc( opt_pluck_n * 1024 );  
   *scratchbuf = malloc( 128 * 1024 ); 
   return NULL == *scratchbuf ? false : true;
 }
@@ -500,12 +499,11 @@ bool get_pluck_scratchbuf( char** scratchbuf )
 bool register_pluck_algo( algo_gate_t* gate )
 {
   algo_not_tested();
-  gate->scanhash       = (void*)&scanhash_pluck;
-  gate->hash           = (void*)&pluck_hash;
-//  gate->set_target     = (void*)&pluck_set_target;
-  gate->set_target     = (void*)&scrypt_set_target;
-  gate->get_scratchbuf = (void*)&get_pluck_scratchbuf;
-  gate->get_max64      = (void*)&pluck_get_max64;
+  gate->scanhash         = (void*)&scanhash_pluck;
+  gate->hash             = (void*)&pluck_hash;
+  gate->set_target       = (void*)&scrypt_set_target;
+  gate->alloc_scratchbuf = (void*)&pluck_alloc_scratchbuf;
+  gate->get_max64        = (void*)&pluck_get_max64;
   return true;
 };
 

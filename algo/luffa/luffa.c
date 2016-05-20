@@ -58,7 +58,6 @@ int scanhash_luffa(int thr_id, struct work *work,
 
 bool register_luffa_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_luffa_ctx;
     gate->scanhash = (void*)&scanhash_luffa;
     gate->hash     = (void*)&luffahash;
     return true;

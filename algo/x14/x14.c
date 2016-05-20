@@ -381,21 +381,13 @@ int scanhash_x14(int thr_id, struct work *work,
 	return 0;
 }
 
-/*
-int64_t x14_get_max64 ()
-{
-  return 0x3ffffLL;
-}
-*/
-
 bool register_x14_algo( algo_gate_t* gate )
 {
   gate->aes_ni_optimized = true;
-  gate->init_ctx  = (void*)&init_x14_ctx;
+  init_x14_ctx();
   gate->scanhash  = (void*)&scanhash_x14;
   gate->hash      = (void*)&x14hash;
   gate->hash_alt  = (void*)&x14hash_alt;
-//  gate->get_max64 = (void*)&x14_get_max64;
   gate->get_max64 = (void*)&get_max64_0x3ffff;
   return true;
 };

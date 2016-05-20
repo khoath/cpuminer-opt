@@ -102,7 +102,6 @@ int64_t blake_get_max64 ()
 
 bool register_blake_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_blakecoin_ctx;
   gate->scanhash  = (void*)&scanhash_blake;
   gate->hash      = (void*)&blakehash;
   gate->hash_alt  = (void*)&blakehash;

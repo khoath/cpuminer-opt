@@ -83,29 +83,26 @@ void algo_not_implemented()
 
 // default null functions
 
-int null_scanhash(int thr_id, struct work* work,  uint32_t  max_nonce,
-              uint64_t *hashes_done, unsigned char* scratchbuf )
+int null_scanhash()
 {
    applog(LOG_WARNING,"SWERR: undefined scanhash function in algo_gate");
    return 0;
 }
 
-void null_hash( void *output, const void *pdata, uint32_t len )
+void null_hash()
 {
    applog(LOG_WARNING,"SWERR: null_hash unsafe null function");
 };
-
-void null_hash_suw( void *output, const void *pdata )
+void null_hash_suw()
 {
   applog(LOG_WARNING,"SWERR: null_hash_suw unsafe null function");
 };
-
-void null_hash_alt   ( void *output, const void *pdata, uint32_t len )
+void null_hash_alt()
 {
   applog(LOG_WARNING,"SWERR: null_hash_alt unsafe null function");
 };
 
-// Standard functions (default)
+// Common target functions, default usually listed first.
 
 void std_wait_for_diff()
 {
@@ -115,55 +112,53 @@ void std_wait_for_diff()
 
 uint32_t *std_get_nonceptr( uint32_t *work_data )
 {
-   return (uint32_t*) ( ((char*)work_data) + 76 );
+   const int nonce_i = 19;
+   return &work_data[ nonce_i ];
 }
 uint32_t *jr2_get_nonceptr( uint32_t *work_data )
 {
-   return (uint32_t*) ( ((char*)work_data) + 39 );
+   // nonce is misaligned, use byte offset
+   const int nonce_byte_i = 39;
+   return (uint32_t*) ( ((uint8_t*) work_data) + nonce_byte_i );
 }
 
-void std_init_nonceptr ( struct work* work, struct work* g_work,
-                          uint32_t **nonceptr, int thr_id )
+void std_init_nonce( struct work* work, struct work* g_work, int thr_id )
 {
-   int wkcmp_sz = 19*sizeof(uint32_t); // 76
-   int wkcmp_offset = 0;
-
-   if ( memcmp( &work->data[wkcmp_offset], &g_work->data[wkcmp_offset],
-                    wkcmp_sz )
-          || jsonrpc_2 ? memcmp( ( (uint8_t*) work->data ) + 43,
-                                 ( (uint8_t*) g_work->data ) + 43, 33 ) : 0 )
+   const int wkcmp_sz = 76;  // nonce_index * sizeof(uint32_t);
+   uint32_t *nonceptr = algo_gate.get_nonceptr( work->data );
+   if ( memcmp( work->data, g_work->data, wkcmp_sz ) )
    {
        work_free( work );
        work_copy( work, g_work );
-       *nonceptr = (uint32_t*)( ( (char*)work->data ) + wkcmp_sz );
-       *nonceptr[0] = 0xffffffffU / opt_n_threads * thr_id;
+       *nonceptr = 0xffffffffU / opt_n_threads * thr_id;
        if ( opt_randomize )
-             *nonceptr[0] += ( (rand() *4 ) & UINT32_MAX ) / opt_n_threads;
+             *nonceptr += ( (rand() *4 ) & UINT32_MAX ) / opt_n_threads;
    }
    else
-       ++(*nonceptr[0]);
+       ++(*nonceptr);
 }
 
-void jr2_init_nonceptr ( struct work* work, struct work* g_work,
-     uint32_t **nonceptr, int thr_id )
+void jr2_init_nonce( struct work* work, struct work* g_work, int thr_id )
 {
-   int wkcmp_sz = 39;
-   int wkcmp_offset = 0;
+// const int wkcmp_sz         = 76;   split into 2 segments
+   const int nonce_byte_i = 39;
+   const int wkcmp2_i     = 43;  // nonce_byte_index + (sizeof)uint32_t
+   const int wkcmp2_sz    = 33;  // wkcmp_sz - wkcmp2-index
+   uint32_t *nonceptr = algo_gate.get_nonceptr( work->data );
 
-   if ( memcmp( &work->data[wkcmp_offset], &g_work->data[wkcmp_offset],
-                    wkcmp_sz )
-          || jsonrpc_2 ? memcmp( ( (uint8_t*) work->data ) + 43,
-                                 ( (uint8_t*) g_work->data ) + 43, 33 ) : 0 )
+   // byte data[ 0..38, 43..75 ], skip over misaligned nonce
+   if ( memcmp( work->data, g_work->data, nonce_byte_i )
+     || memcmp( ((uint8_t*) work->data)   + wkcmp2_i,
+                ((uint8_t*) g_work->data) + wkcmp2_i, wkcmp2_sz ) )
    {
        work_free( work );
        work_copy( work, g_work );
-       *nonceptr = (uint32_t*)( ( (char*)work->data ) + wkcmp_sz );
-       *nonceptr[0] = 0xffffffffU / opt_n_threads * thr_id;
+       *nonceptr = 0xffffffffU / opt_n_threads * thr_id;
        if ( opt_randomize )
-             *nonceptr[0] += ( (rand() *4 ) & UINT32_MAX ) / opt_n_threads;
+             *nonceptr += ( (rand() *4 ) & UINT32_MAX ) / opt_n_threads;
    }
    else
-       ++(*nonceptr[0]);
+       ++(*nonceptr);
 }
 
 // pick your favorite or define your own
@@ -173,7 +168,6 @@ int64_t get_max64_0x3ffff()    { return 0x3ffff;    }
 int64_t get_max64_0x3fffffLL() { return 0x3fffffLL; }
 int64_t get_max64_0x1ffff()    { return 0x1ffff;    }
 
-// This is the default
 void sha256d_gen_merkle_root( char* merkle_root, struct stratum_ctx* sctx )
 {
   sha256d(merkle_root, sctx->job.coinbase, (int) sctx->job.coinbase_size);
@@ -183,8 +177,7 @@ void sha256d_gen_merkle_root( char* merkle_root, struct stratum_ctx* sctx )
      sha256d( merkle_root, merkle_root, 64 );
   }
 }
-
-void SHA256_gen_merkle_root ( char* merkle_root, struct stratum_ctx* sctx )
+void SHA256_gen_merkle_root( char* merkle_root, struct stratum_ctx* sctx )
 {
   SHA256( sctx->job.coinbase, (int)sctx->job.coinbase_size, merkle_root );
   for ( int i = 0; i < sctx->job.merkle_count; i++ )
@@ -194,12 +187,10 @@ void SHA256_gen_merkle_root ( char* merkle_root, struct stratum_ctx* sctx )
   }
 }
 
-// default
 void std_set_target( struct work* work, double job_diff )
 {
    work_set_target( work, job_diff / opt_diff_factor );
 }
-
 // most scrypt based algos
 void scrypt_set_target( struct work* work, double job_diff )
 {
@@ -215,61 +206,57 @@ void swab_work_data( struct work *work )
 
 void std_build_extraheader( struct work* work, struct stratum_ctx* sctx )
 {
-   work->data[17] = le32dec(sctx->job.ntime);
-   work->data[18] = le32dec(sctx->job.nbits);
+   const int ntime_i = 17;
+   const int nbits_i = 18;
+   work->data[ ntime_i ] = le32dec(sctx->job.ntime);
+   work->data[ nbits_i ] = le32dec(sctx->job.nbits);
    work->data[20] = 0x80000000;
    work->data[31] = 0x00000280;
 }
 
-void std_calc_network_diff ( struct work* work )
+void std_calc_network_diff( struct work* work )
 {
    // sample for diff 43.281 : 1c05ea29
    // todo: endian reversed on longpoll could be zr5 specific...
-   uint32_t nbits = have_longpoll ? work->data[18] : swab32(work->data[18]);
-   uint32_t bits = (nbits & 0xffffff);
-   int16_t shift = (swab32(nbits) & 0xff); // 0x1c = 28
-
+   uint32_t nbits = have_longpoll ? work->data[18] : swab32( work->data[18] );
+   uint32_t bits  = ( nbits & 0xffffff );
+   int16_t  shift = ( swab32(nbits) & 0xff ); // 0x1c = 28
+   int m;
    net_diff = (double)0x0000ffff / (double)bits;
-
-   for (int m=shift; m < 29; m++)
+   for ( m = shift; m < 29; m++ )
        net_diff *= 256.0;
-   for (int m=29; m < shift; m++)
+   for ( m = 29; m < shift; m++ )
        net_diff /= 256.0;
 }
 
 void init_algo_gate( algo_gate_t* gate )
 {
-   gate->aes_ni_optimized         = false;
-   gate->scanhash                 = (void*)&null_scanhash;
-   gate->hash                     = (void*)&null_hash;
-   gate->hash_alt                 = (void*)&null_hash_alt;
-   gate->hash_suw                 = (void*)&null_hash_suw;
-   gate->init_ctx                 = (void*)&do_nothing;
-   gate->gen_work_now             = (void*)&std_gen_work_now;
-   gate->init_nonceptr            = (void*)&std_init_nonceptr;
-   gate->get_nonceptr             = (void*)&std_get_nonceptr;
-   gate->display_extra_data       = (void*)&do_nothing;
-   gate->wait_for_diff            = (void*)&std_wait_for_diff;
-   gate->get_max64                = (void*)&get_max64_0x1fffffLL;
-   gate->get_scratchbuf           = (void*)&return_true;
-   gate->gen_merkle_root          = (void*)&sha256d_gen_merkle_root;
-   gate->stratum_gen_work         = (void*)& std_stratum_gen_work;
-   gate->build_stratum_request    = (void*)&build_stratum_request_le;
-   gate->set_target               = (void*)&std_set_target;
-   gate->submit_getwork_result    = (void*)&std_submit_getwork_result;
-   gate->build_extraheader        = (void*)&std_build_extraheader;
-   gate->set_work_data_endian     = (void*)&do_nothing;
-   gate->calc_network_diff        = (void*)&std_calc_network_diff;
-   gate->prevent_dupes            = (void*)&return_false;
-   gate->thread_barrier_init      = (void*)&do_nothing;
-   gate->thread_barrier_wait      = (void*)&do_nothing;
-   gate->backup_work_data         = (void*)&do_nothing;
-   gate->restore_work_data        = (void*)&do_nothing;
-   gate->do_all_threads           = (void*)&return_true;
-   gate->get_pseudo_random_data   = (void*)&do_nothing;
-   gate->longpoll_rpc_call        = (void*)&std_longpoll_rpc_call;
-   gate->stratum_handle_response  = (void*)&std_stratum_handle_response;
-   gate->data_size                = 128;
+   gate->aes_ni_optimized        = false;
+   gate->scanhash                = (void*)&null_scanhash;
+   gate->hash                    = (void*)&null_hash;
+   gate->hash_alt                = (void*)&null_hash_alt;
+   gate->hash_suw                = (void*)&null_hash_suw;
+   gate->gen_work_now            = (void*)&std_gen_work_now;
+   gate->init_nonce              = (void*)&std_init_nonce;
+   gate->get_nonceptr            = (void*)&std_get_nonceptr;
+   gate->display_extra_data      = (void*)&do_nothing;
+   gate->wait_for_diff           = (void*)&std_wait_for_diff;
+   gate->get_max64               = (void*)&get_max64_0x1fffffLL;
+   gate->alloc_scratchbuf        = (void*)&return_true;
+   gate->gen_merkle_root         = (void*)&sha256d_gen_merkle_root;
+   gate->stratum_gen_work        = (void*)&std_stratum_gen_work;
+   gate->build_stratum_request   = (void*)&std_le_build_stratum_request;
+   gate->set_target              = (void*)&std_set_target;
+   gate->submit_getwork_result   = (void*)&std_submit_getwork_result;
+   gate->build_extraheader       = (void*)&std_build_extraheader;
+   gate->set_work_data_endian    = (void*)&do_nothing;
+   gate->calc_network_diff       = (void*)&std_calc_network_diff;
+   gate->prevent_dupes           = (void*)&return_false;
+   gate->resync_threads          = (void*)&do_nothing;
+   gate->do_this_thread          = (void*)&return_true;
+   gate->longpoll_rpc_call       = (void*)&std_longpoll_rpc_call;
+   gate->stratum_handle_response = (void*)&std_stratum_handle_response;
+   gate->data_size               = 128;
 }
 
 // called by each thread that uses the gate
@@ -299,6 +286,7 @@ bool register_algo_gate( int algo, algo_gate_t *gate )
      case ALGO_FRESH:       register_fresh_algo      ( gate ); break;
      case ALGO_GROESTL:     register_groestl_algo    ( gate ); break;
      case ALGO_HEAVY:       register_heavy_algo      ( gate ); break;
+     case ALGO_HMQ1725:     register_hmq1725_algo    ( gate ); break;
      case ALGO_HODL:        register_hodl_algo       ( gate ); break;
      case ALGO_KECCAK:      register_keccak_algo     ( gate ); break;
      case ALGO_LUFFA:       register_luffa_algo      ( gate ); break;
@@ -343,19 +331,20 @@ bool register_algo_gate( int algo, algo_gate_t *gate )
   return true;
 }
 
+// override std defaults with jr2 defaults
 bool register_json_rpc2( algo_gate_t *gate )
 {
-  gate->wait_for_diff            = (void*)&do_nothing;
-  gate->gen_work_now             = (void*)&jr2_gen_work_now;
-  gate->init_nonceptr            = (void*)&jr2_init_nonceptr;
-  gate->get_nonceptr             = (void*)&jr2_get_nonceptr;
-  gate->stratum_gen_work         = (void*)&jr2_stratum_gen_work;
-  gate->build_stratum_request    = (void*)&jr2_build_stratum_request;
-  gate->submit_getwork_result    = (void*)&jr2_submit_getwork_result;
-  gate->longpoll_rpc_call        = (void*)&jr2_longpoll_rpc_call;
-  gate->work_decode              = (void*)&jr2_work_decode;
-  gate->stratum_handle_response  = (void*)&jr2_stratum_handle_response;
-  jsonrpc_2 = true;
+  gate->wait_for_diff           = (void*)&do_nothing;
+  gate->gen_work_now            = (void*)&jr2_gen_work_now;
+  gate->init_nonce              = (void*)&jr2_init_nonce;
+  gate->get_nonceptr            = (void*)&jr2_get_nonceptr;
+  gate->stratum_gen_work        = (void*)&jr2_stratum_gen_work;
+  gate->build_stratum_request   = (void*)&jr2_build_stratum_request;
+  gate->submit_getwork_result   = (void*)&jr2_submit_getwork_result;
+  gate->longpoll_rpc_call       = (void*)&jr2_longpoll_rpc_call;
+  gate->work_decode             = (void*)&jr2_work_decode;
+  gate->stratum_handle_response = (void*)&jr2_stratum_handle_response;
+  jsonrpc_2 = true;   // still needed
  }
 
 // run the hash_alt gate function for a specific algo
@@ -378,7 +367,7 @@ void exec_hash_function( int algo, void *output, const void *pdata )
 // multiple aliases but are not defined in ALGO_NAMES.
 // New aliases can be added anywhere in the array as long as NULL is last.
 // Alphabetic order of alias is recommended.
-const char* algo_alias_map[][2] =
+const char* const algo_alias_map[][2] =
 {
 //   alias                proper
   { "blake256r8",        "blakecoin"   },
@@ -387,6 +376,7 @@ const char* algo_alias_map[][2] =
   { "cryptonight-light", "cryptolight" },
   { "dmd-gr",            "groestl"     },
   { "droplp",            "drop"        },
+  { "espers",            "hmq1725"     },
   { "flax",              "c11"         },
   { "jane",              "scryptjane"  }, 
   { "lyra2",             "lyra2re"     },
@@ -409,7 +399,7 @@ void get_algo_alias( char** algo_or_alias )
     if ( !strcasecmp( *algo_or_alias, algo_alias_map[i][ ALIAS ] ) )
     {
       // found valid alias, return proper name
-      *algo_or_alias = algo_alias_map[i][ PROPER ];
+      *algo_or_alias = (char* const)( algo_alias_map[i][ PROPER ] );
       return;
     }
 }

@@ -68,7 +68,7 @@ cpuminer_SOURCES = \
   algo/blake/pentablake.c \
   algo/bmw/bmw256.c \
   algo/cubehash/sse2/cubehash_sse2.c\
-  algo/cryptolight.c \
+  algo/cryptonight/cryptolight.c \
   algo/cryptonight/cryptonight-common.c\
   algo/cryptonight/cryptonight-aesni.c\
   algo/cryptonight/cryptonight.c\
@@ -83,6 +83,7 @@ cpuminer_SOURCES = \
   algo/haval/haval.c\
   algo/heavy/heavy.c \
   algo/heavy/bastion.c \
+  algo/hmq1725.c \
   algo/hodl/hodl.cpp \
   algo/hodl/hodl-gate.c \
   algo/hodl/hodl_arith_uint256.cpp \
