@@ -11,7 +11,7 @@ How to build
 ```bash
 git clone https://github.com/hmage/cpuminer-opt
 cd cpuminer-opt
-sudo apt-get install libssl-dev libcurl4-openssl-dev libjansson-dev
+sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev libjansson-dev libgmp-dev autoconf automake libtool
 ./build.sh
 ```
 
