@@ -466,7 +466,6 @@ int scanhash_hmq1725( int thr_id, struct work *work, int32_t max_nonce,
 
 bool register_hmq1725_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx         = (void*)&init_hmq1725_ctx;
   init_hmq1725_ctx();
   gate->aes_ni_optimized = true;
   gate->set_target       = (void*)&scrypt_set_target;

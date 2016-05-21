@@ -61,8 +61,6 @@ int scanhash_lyra2re(int thr_id, struct work *work,
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0000ff;
 
-//        init_lyr2re_x64_ctx();
-
 	for (int k=0; k < 20; k++)
 		be32enc(&endiandata[k], ((uint32_t*)pdata)[k]);
 
@@ -102,7 +100,6 @@ void lyra2re_set_target ( struct work* work, double job_diff )
 
 bool register_lyra2re_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx   = (void*)&init_lyra2re_ctx;
   init_lyra2re_ctx();
   gate->scanhash   = (void*)&scanhash_lyra2re;
   gate->hash       = (void*)&lyra2re_hash;

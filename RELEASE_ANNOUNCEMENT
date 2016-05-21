@@ -1,4 +1,4 @@
-        Release 3.2.3 of cpuminer-opt is available for download.
+        Release 3.2.5 of cpuminer-opt is available for download.
 
 
 All users are encouraged to upgrade.
@@ -11,10 +11,14 @@ In addition 13 algorithms have optimizations to take advantage of
 CPUs with AES_NI for even greater performance, including the Intel
 Sandy Bridge (Core-i 2xxx) and AMD equivalent.
 
-New in v3.2.4
+New in v3.2.5
 
-- algo hmq17255 (espers) +56% (AES_NI), +17% (SSE2) over cpuminer-hmq1725.
+- lyra2v2 algo SSE2 optimized +106%.
 
+New in 3.2.4
+
+- new algo hmq1725 (espers) AES_NI optimized +56% and SSE2 optimized +17%
+ 
 Users with non-SSE2 CPUs or who want to mine algos not supported by
 cpuminer-opt may find cpuminer-multi by TPruvot useful.
 
@@ -45,10 +49,10 @@ c11             733      475          0.99
 myr-gr         1572     1560          2.12
 hmq1725         214      161          0.29
 cryptonight     290 H    165 H        0.00039
-hodl            275      200 H        0.00037
+hodl            275      200          0.00037
 neoscrypt       (4)       32 K        0.043
 lyra2re         (4)      930          1.25
-lyra2rev2       (4)      495          0.65
+lyra2rev2       (4)     1020          1.38
 argon2          (4)     33.7          0.045
 m7m             (4)     48.7          0.066
 groestl         (4)      931          1.26 
@@ -61,22 +65,20 @@ sha256d         (4)     62.5          0.084
 blake           (4)     22.4 M       30.4
 blake2s         (4)     17.5         23.6
 vanilla         (4)     33.0         44.6
+blakecoin       (4)     33.9         45.8
 decred          (4)     22.6         30.5 
 axiom           (4)       72 H        0.098
 yescrypt        (4)     3760          0.0051
 scryptjane      (4)      250          0.00034
-blakecoin       (4)     33.9 M       45.8
-cryptolight(2)  (4)      685 H        0.00093
-pluck(2)        (4)     1925 H        0.0026
+cryptolight(2)  (4)      685          0.00093
+pluck(2)        (4)     1925          0.0026
 drop(2)         (4)      934 K        1.26
 fresh(2)        (4)      528 K        0.71
 
 Footnotes:
 (1) SSE2 rates are simulated in software (-march=core2).
-(2) benchmark tested only
+(2) Benchmark tested only
 (3) CPU architecture not supported for algo. It won't work.
 (4) AES_NI Optimization not available for CPU artchitecture. Uses SSE2, slower.
 (5) Normalised profitability = algo profitability * norm rate, x11 = 1
 Unlisted algos are in an unknown state
-
-

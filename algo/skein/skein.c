@@ -21,7 +21,6 @@ void init_skein_ctx()
         SHA256_Init(&skein_ctx.sha256);
 }
 
-
 void skeinhash(void *state, const void *input)
 {
      skein_ctx_holder ctx;
@@ -76,7 +75,6 @@ int64_t skein_get_max64() { return 0x7ffffLL; }
 
 bool register_skein_algo( algo_gate_t* gate )
 {
-//    gate->init_ctx  = (void*)&init_skein_ctx;
     init_skein_ctx();
     gate->scanhash  = (void*)&scanhash_skein;
     gate->hash      = (void*)&skeinhash;

@@ -224,7 +224,7 @@ bool register_decred_algo( algo_gate_t* gate )
   gate->gen_merkle_root       = (void*)&decred_gen_merkle_root;
   gate->build_extraheader     = (void*)&decred_build_extraheader;
   gate->prevent_dupes         = (void*)&decred_prevent_dupes;
-  gate->data_size             = 192;
+  gate->work_data_size        = 192;
   allow_mininginfo            = false;
   have_gbt                    = false;
   return true;

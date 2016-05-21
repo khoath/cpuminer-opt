@@ -361,7 +361,7 @@ void m7mhash(void *output, const void *input)
 
 bool m7m_work_decode( const json_t *val, struct work *work )
 {
-    int data_size   = algo_gate.data_size;
+    int data_size   = algo_gate.work_data_size;
     int target_size = sizeof(work->target);
     int adata_sz    = ARRAY_SIZE(work->data);
     int atarget_sz  = ARRAY_SIZE(work->target);
@@ -389,7 +389,6 @@ void m7m_reverse_endian( struct work *work )
 
 bool register_m7m_algo( algo_gate_t *gate )
 {
-//  gate->init_ctx              = (void*)&init_m7m_ctx;
   init_m7m_ctx();
   gate->scanhash              = (void*)&scanhash_m7m;
   gate->hash                  = (void*)&m7mhash;
@@ -398,6 +397,6 @@ bool register_m7m_algo( algo_gate_t *gate )
   gate->set_target            = (void*)&scrypt_set_target;
   gate->get_max64             = (void*)&get_max64_0x1ffff;
   gate->set_work_data_endian  = (void*)&m7m_reverse_endian;
-  gate->data_size             = 80;
+  gate->work_data_size        = 80;
   return true;
 }

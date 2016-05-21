@@ -40,12 +40,7 @@ void myriadhash(void *output, const void *input)
      memcpy( &ctx, &myrgr_ctx, sizeof(myrgr_ctx) );
 
  	uint32_t _ALIGN(32) hash[16];
-//	sph_groestl512_context ctx;
-//	sph_sha256_context sha_ctx;
 
-	// memset(&hash[0], 0, sizeof(hash));
-
-//	sph_groestl512_init(&ctx);
 #ifdef NO_AES_NI
 	sph_groestl512(&ctx.groestl, input, 80);
 	sph_groestl512_close(&ctx.groestl, hash);
@@ -54,12 +49,10 @@ void myriadhash(void *output, const void *input)
         final_groestl( &ctx.groestl, (char*)hash);
 #endif
 
-//	sph_sha256_init(&sha_ctx);
 	sph_sha256(&ctx.sha, hash, 64);
 	sph_sha256_close(&ctx.sha, hash);
 
 	memcpy(output, hash, 32);
-
 }
 
 int scanhash_myriad(int thr_id, struct work *work,
@@ -101,7 +94,6 @@ int scanhash_myriad(int thr_id, struct work *work,
 bool register_myriad_algo( algo_gate_t* gate )
 {
     gate->aes_ni_optimized = true;
-//      gate->init_ctx = (void*)&init_myrgr_ctx;
     init_myrgr_ctx();
     gate->scanhash = (void*)&scanhash_myriad;
     gate->hash     = (void*)&myriadhash;
