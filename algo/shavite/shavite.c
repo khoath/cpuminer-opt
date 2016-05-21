@@ -148,9 +148,11 @@ int scanhash_ink(int thr_id, struct work *work,
 
 bool register_shavite_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_ink_ctx;
-    gate->scanhash = (void*)&scanhash_ink;
-    gate->hash     = (void*)&inkhash;
-    return true;
+    algo_not_implemented();
+    return false;
+
+//    gate->scanhash = (void*)&scanhash_ink;
+//    gate->hash     = (void*)&inkhash;
+//    return true;
 };
 

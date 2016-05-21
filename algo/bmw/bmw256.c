@@ -58,9 +58,10 @@ int scanhash_bmw(int thr_id, struct work *work,
 
 bool register_bmw256_algo( algo_gate_t* gate )
 {
-//  gate->init_ctx = &init_bmw_ctx;
-    gate->scanhash = (void*)&scanhash_bmw;
-    gate->hash     = (void*)&bmwhash;
+    algo_not_implemented();
+    return false;
+//    gate->scanhash = (void*)&scanhash_bmw;
+//    gate->hash     = (void*)&bmwhash;
     return true;
 };
 

@@ -72,8 +72,8 @@ void qubithash(void *output, const void *input)
         sph_luffa512 (&ctx.luffa, input, 80);
         sph_luffa512_close(&ctx.luffa, (void*) hash);
 #else
-        init_luffa(&qubit_ctx.luffa,512);
-        update_luffa( &ctx.luffa, (const BitSequence*)input,512);
+//        init_luffa(&qubit_ctx.luffa,512);
+        update_luffa( &ctx.luffa, (const BitSequence*)input, 80 );
         final_luffa( &ctx.luffa, (BitSequence*)hash);
 #endif
 
@@ -93,7 +93,6 @@ void qubithash(void *output, const void *input)
         update_echo ( &ctx.echo, (const BitSequence *) hash, 512);
         final_echo( &ctx.echo, (BitSequence *) hash);
 #endif
-
 
         asm volatile ("emms");
         memcpy(output, hash, 32);

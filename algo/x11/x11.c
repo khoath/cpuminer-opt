@@ -259,7 +259,6 @@ int scanhash_x11(int thr_id, struct work *work,
 
 	uint32_t hash64[8] __attribute__((aligned(32)));
         uint32_t endiandata[32];
-//       init_x11_ctx();
 
         be32enc( &endiandata[0], ((uint32_t*)pdata)[0] );
         be32enc( &endiandata[1], ((uint32_t*)pdata)[1] );
@@ -313,10 +312,6 @@ int scanhash_x11(int thr_id, struct work *work,
                    *hashes_done = n - first_nonce + 1;
                    return true;
                }
-//               else
-//               {
-//                 applog(LOG_INFO, "Result does not validate on CPU!");
-//               }          
              }
           } while ( n < max_nonce && !work_restart[thr_id].restart );        
         }
@@ -334,10 +329,6 @@ int scanhash_x11(int thr_id, struct work *work,
                  *hashes_done = n - first_nonce + 1;
                  return true;
                }
-//               else
-//               {
-//                 applog(LOG_INFO, "Result %d/%d does not validate on CPU!");
-//               }          
              }              
            } while ( n < max_nonce && !work_restart[thr_id].restart );        
         }
@@ -355,10 +346,6 @@ int scanhash_x11(int thr_id, struct work *work,
                 *hashes_done = n - first_nonce + 1;
                 return true;
               }
-//              else
-//              {
-//                applog(LOG_INFO, "Result does not validate on CPU!");
-//              }
             }
           } while ( n < max_nonce && !work_restart[thr_id].restart );        
         }
@@ -376,10 +363,6 @@ int scanhash_x11(int thr_id, struct work *work,
                 *hashes_done = n - first_nonce + 1;
                 return true;
               }
-//              else
-//              {
-//                applog(LOG_INFO, "Result does not validate on CPU!");
-//              }          
             }
           } while ( n < max_nonce && !work_restart[thr_id].restart );        
         }
@@ -397,10 +380,6 @@ int scanhash_x11(int thr_id, struct work *work,
                 *hashes_done = n - first_nonce + 1;
                 return true;
               }
-//            else
-//              {
-//                applog(LOG_INFO, "Result does not validate on CPU!");
-//              }          
             }
           } while ( n < max_nonce && !work_restart[thr_id].restart );        
         }
@@ -416,10 +395,6 @@ int scanhash_x11(int thr_id, struct work *work,
               *hashes_done = n - first_nonce + 1;
               return true;
             }
-//            else
-//            {
-//              applog(LOG_INFO, "Result does not validate on CPU!");
-//            }
           } while ( n < max_nonce && !work_restart[thr_id].restart );        
         }
 

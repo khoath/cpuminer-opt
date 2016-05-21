@@ -6,21 +6,21 @@
 #include <string.h>
 #include <stdio.h>
 
-//#include "algo/blake/sph_blake.h"
-//#include "algo/bmw/sph_bmw.h"
-//#include "algo/groestl/sph_groestl.h"
-//#include "algo/jh/sph_jh.h"
-//#include "algo/keccak/sph_keccak.h"
-//#include "algo/skein/sph_skein.h"
-//#include "algo/luffa/sph_luffa.h"
-//#include "algo/cubehash/sph_cubehash.h"
+#include "algo/blake/sph_blake.h"
+#include "algo/bmw/sph_bmw.h"
+#include "algo/groestl/sph_groestl.h"
+#include "algo/jh/sph_jh.h"
+#include "algo/keccak/sph_keccak.h"
+#include "algo/skein/sph_skein.h"
+#include "algo/luffa/sph_luffa.h"
+#include "algo/cubehash/sph_cubehash.h"
 #include "algo/shavite/sph_shavite.h"
-//#include "algo/simd/sph_simd.h"
-//#include "algo/echo/sph_echo.h"
+#include "algo/simd/sph_simd.h"
+#include "algo/echo/sph_echo.h"
 
 #ifdef NO_AES_NI
-  #include "algo/echo/sph_echo.h"
-  #include "algo/groestl/sph_groestl.h"
+//  #include "algo/echo/sph_echo.h"
+//  #include "algo/groestl/sph_groestl.h"
 #else
   #include "algo/groestl/aes_ni/hash-groestl.h"
   #include "algo/echo/aes_ni/hash_api.h"
@@ -38,10 +38,7 @@
 
 typedef struct {
     sph_shavite512_context  shavite;
-//    sph_groestl512_context  groestl;
-        sph_skein512_context     skein;
-//        sph_jh512_context        jh;
-//        sph_keccak512_context    keccak;
+    sph_skein512_context     skein;
 #ifdef NO_AES_NI
     sph_groestl512_context  groestl;
     sph_echo512_context     echo;
@@ -62,10 +59,6 @@ void init_c11_ctx()
      cubehashInit( &c11_ctx.cube, 512, 16, 32 );
      sph_shavite512_init( &c11_ctx.shavite );
      init_sd( &c11_ctx.simd, 512 );
-//        sph_jh512_init(&c11_ctx.jh);
-//        sph_keccak512_init(&c11_ctx.keccak);
-//        sph_skein512_init(&c11_ctx.skein);
-//     sph_groestl512_init( &c11_ctx.groestl );
 #ifdef NO_AES_NI
      sph_groestl512_init( &c11_ctx.groestl );
      sph_echo512_init( &c11_ctx.echo );
@@ -75,7 +68,7 @@ void init_c11_ctx()
 #endif
 }
 
-void c11hash(void *output, const void *input)
+void c11hash( void *output, const void *input )
 {
         unsigned char hash[128]; // uint32_t hashA[16], hashB[16];
 //	uint32_t _ALIGN(64) hash[16];
@@ -105,16 +98,11 @@ void c11hash(void *output, const void *input)
      #undef dH
 
 #ifdef NO_AES_NI
-//     grsoState sts_grs;
-//           GRS_I;
-//           GRS_U;
-//           GRS_C;
-//
      sph_groestl512 (&ctx.groestl, hash, 64);
      sph_groestl512_close(&ctx.groestl, hash);
 #else
-       update_groestl( &ctx.groestl, (char*)hash,512);
-       final_groestl( &ctx.groestl, (char*)hash);
+     update_groestl( &ctx.groestl, (char*)hash,512);
+     final_groestl( &ctx.groestl, (char*)hash);
 #endif
 
      DECL_JH;
@@ -129,16 +117,7 @@ void c11hash(void *output, const void *input)
      SKN_I;
      SKN_U;
      SKN_C;
-/*
-        sph_jh512 (&ctx.jh, hash, 64);
-        sph_jh512_close(&ctx.jh, hash+64);
 
-        sph_keccak512 (&ctx.keccak, hash+64, 64);
-        sph_keccak512_close(&ctx.keccak, hash);
-
-        sph_skein512 (&ctx.skein, hash, 64);
-        sph_skein512_close (&ctx.skein, hash);
-*/
      update_luffa( &ctx.luffa, (const BitSequence*)hash,512);
      final_luffa( &ctx.luffa, (BitSequence*)hash+64);
 
@@ -159,8 +138,25 @@ void c11hash(void *output, const void *input)
      final_echo( &ctx.echo, (BitSequence *) hash+64 );
 #endif
 
+        memcpy(output, hash+64, 32);
+}
 
-/*
+void c11hash_alt( void *output, const void *input )
+{
+    unsigned char hash[128];
+    sph_blake512_context     ctx_blake;
+    sph_bmw512_context       ctx_bmw;
+    sph_groestl512_context   ctx_groestl;
+    sph_skein512_context     ctx_skein;
+    sph_jh512_context        ctx_jh;
+    sph_keccak512_context    ctx_keccak;
+    sph_luffa512_context     ctx_luffa1;
+    sph_cubehash512_context  ctx_cubehash1;
+    sph_shavite512_context   ctx_shavite1;
+    sph_simd512_context      ctx_simd1;
+    sph_echo512_context      ctx_echo;
+
+
 	sph_blake512_init(&ctx_blake);
 	sph_blake512 (&ctx_blake, input, 80);
 	sph_blake512_close (&ctx_blake, hash);
@@ -201,15 +197,15 @@ void c11hash(void *output, const void *input)
 	sph_simd512 (&ctx_simd1, hash, 64);
 	sph_simd512_close(&ctx_simd1, hash);
 
-	sph_echo512_init (&ctx_echo1);
-	sph_echo512 (&ctx_echo1, hash, 64);
-	sph_echo512_close(&ctx_echo1, hash);
-*/
+	sph_echo512_init (&ctx_echo);
+	sph_echo512 (&ctx_echo, hash, 64);
+	sph_echo512_close(&ctx_echo, hash);
+
 	memcpy(output, hash+64, 32);
 }
 
-int scanhash_c11(int thr_id, struct work *work,
-	uint32_t max_nonce,	uint64_t *hashes_done)
+int scanhash_c11( int thr_id, struct work *work, uint32_t max_nonce,
+                  uint64_t *hashes_done )
 {
         uint32_t *pdata = work->data;
         uint32_t *ptarget = work->target;
@@ -218,29 +214,25 @@ int scanhash_c11(int thr_id, struct work *work,
 	uint32_t nonce = first_nonce;
 	volatile uint8_t *restart = &(work_restart[thr_id].restart);
 
-//        init_c11_ctx();
-
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0cff;
-
-	for (int k=0; k < 19; k++)
-		be32enc(&endiandata[k], pdata[k]);
-
+	for ( int k=0; k < 19; k++ )
+		be32enc( &endiandata[k], pdata[k] );
 	const uint32_t Htarg = ptarget[7];
-	do {
+	do
+        {
 		uint32_t hash[8];
-		be32enc(&endiandata[19], nonce);
-		c11hash(hash, endiandata);
+		be32enc( &endiandata[19], nonce );
+		c11hash( hash, endiandata );
 
-		if (hash[7] <= Htarg && fulltest(hash, ptarget)) {
+		if ( hash[7] <= Htarg && fulltest(hash, ptarget) )
+                {
 			pdata[19] = nonce;
 			*hashes_done = pdata[19] - first_nonce;
 			return 1;
 		}
 		nonce++;
-
-	} while (nonce < max_nonce && !(*restart));
-
+	} while ( nonce < max_nonce && !(*restart) );
 	pdata[19] = nonce;
 	*hashes_done = pdata[19] - first_nonce + 1;
 	return 0;
@@ -250,9 +242,9 @@ bool register_c11_algo( algo_gate_t* gate )
 {
   gate->aes_ni_optimized = true;
   init_c11_ctx();
-  gate->scanhash = (void*)&scanhash_c11;
-  gate->hash     = (void*)&c11hash;
-  gate->hash_alt = (void*)&c11hash;
+  gate->scanhash  = (void*)&scanhash_c11;
+  gate->hash      = (void*)&c11hash;
+  gate->hash_alt  = (void*)&c11hash_alt;
   gate->get_max64 = (void*)&get_max64_0x3ffff;
   return true;
 };

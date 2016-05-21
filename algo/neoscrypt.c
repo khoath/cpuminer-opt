@@ -1103,7 +1103,7 @@ bool register_neoscrypt_algo( algo_gate_t* gate )
   gate->wait_for_diff         = (void*)&neoscrypt_wait_for_diff;
   gate->build_stratum_request = (void*)&std_be_build_stratum_request;
   gate->set_work_data_endian  = (void*)&swab_work_data;
-  gate->data_size             = 80;
+  gate->work_data_size        = 80;
   return true;
 };
 

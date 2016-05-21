@@ -109,9 +109,9 @@ int64_t blakecoin_get_max64 ()
   return 0x7ffffLL;
 }
 
+/*
 bool register_blakecoin_algo( algo_gate_t* gate )
 {
-  algo_not_tested();
   gate->scanhash = (void*)&scanhash_blakecoin;
   gate->hash     = (void*)&blakecoinhash;
   gate->hash_alt = (void*)&blakecoinhash;
@@ -119,6 +119,7 @@ bool register_blakecoin_algo( algo_gate_t* gate )
   gate->get_max64 = (void*)&blakecoin_get_max64;
   return true;
 }
+*/
 
 // vanilla uses default gen merkle root, otherwise identical to blakecoin
 bool register_vanilla_algo( algo_gate_t* gate )
@@ -128,5 +129,12 @@ bool register_vanilla_algo( algo_gate_t* gate )
     gate->hash_alt = (void*)&blakecoinhash;
     gate->get_max64 = (void*)&blakecoin_get_max64;
     return true;
+}
+
+bool register_blakecoin_algo( algo_gate_t* gate )
+{
+  register_vanilla_algo( gate );
+  gate->gen_merkle_root = (void*)&SHA256_gen_merkle_root;
+  return true;
 }
 

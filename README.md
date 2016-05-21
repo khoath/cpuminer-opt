@@ -2,7 +2,19 @@ This project is forked by Jay D Dee.
 
 Building on linux:
 
-Updatd for v3.1.18.
+It is assumed users know how to install packages on their system and
+be able to compile standard source packages. This is basic Linux and
+beyond the scope of cpuminer-opt. 
+
+Make sure you have the basic development packages installed.
+Here is a good start:
+
+http://askubuntu.com/questions/457526/how-to-install-cpuminer-in-ubuntu
+
+Install any additional dependencies needed by cpuminer-opt. The list below
+are some of the ones that may not be in the default install and need to
+be installed manually. There may be others, read the error messages they
+will give a clue as to the missing package.
 
 Dependencies
 
@@ -14,6 +26,10 @@ pthreads
 zlib
 libboost
 gmp
+
+
+tar xvzf [file.tar.gz]
+cd [file]
 
 ./build.sh should now work for most users. If not some tips follow.
 

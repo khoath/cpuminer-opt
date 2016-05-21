@@ -231,7 +231,6 @@ void std_calc_network_diff( struct work* work )
 
 void init_algo_gate( algo_gate_t* gate )
 {
-   gate->aes_ni_optimized        = false;
    gate->scanhash                = (void*)&null_scanhash;
    gate->hash                    = (void*)&null_hash;
    gate->hash_alt                = (void*)&null_hash_alt;
@@ -256,7 +255,8 @@ void init_algo_gate( algo_gate_t* gate )
    gate->do_this_thread          = (void*)&return_true;
    gate->longpoll_rpc_call       = (void*)&std_longpoll_rpc_call;
    gate->stratum_handle_response = (void*)&std_stratum_handle_response;
-   gate->data_size               = 128;
+   gate->work_data_size          = 128;
+   gate->aes_ni_optimized        = false;
 }
 
 // called by each thread that uses the gate
