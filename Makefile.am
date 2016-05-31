@@ -119,6 +119,7 @@ cpuminer_SOURCES = \
   algo/s3.c \
   algo/tiger/sph_tiger.c \
   algo/x11/x11.c \
+  algo/x11/x11evo.c \
   algo/x11/x11gost.c \
   algo/x11/c11.c \
   algo/x13/x13.c \
@@ -157,7 +158,7 @@ if HAVE_WINDOWS
 endif
 
 cpuminer_LDFLAGS	= @LDFLAGS@
-cpuminer_LDADD	= @LIBCURL@ @JANSSON_LIBS@ @PTHREAD_LIBS@ @WS2_LIBS@ -lssl -lcrypto -lboost_thread -lboost_system -lgmp
+cpuminer_LDADD	= @LIBCURL@ @JANSSON_LIBS@ @PTHREAD_LIBS@ @WS2_LIBS@ -lssl -lcrypto -lgmp
 cpuminer_CPPFLAGS = @LIBCURL_CPPFLAGS@ $(ALL_INCLUDES)
 cpuminer_CFLAGS   = -Wno-pointer-sign -Wno-pointer-to-int-cast $(disable_flags)
 

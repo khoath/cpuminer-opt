@@ -1,13 +1,15 @@
 #include "miner.h"
 //#include "algo-gate-api.h"
 
+#if (!(defined(_WIN64) || defined(__WINDOWS__)))
+
 #include "hodl_uint256.h"
 #include "hodl_arith_uint256.h"
 #include "block.h"
 #include <sstream>
 #include "tinyformat.h"
-#include <boost/thread.hpp>
-#include <boost/unordered_map.hpp>
+//#include <boost/thread.hpp>
+#include <unordered_map>
 #include "hash.h"
 #include <openssl/aes.h>
 #include <openssl/evp.h>
@@ -169,3 +171,4 @@ void GetPsuedoRandomData( char* mainMemoryPsuedoRandomData, uint32_t *pdata,
     SHA512Filler( mainMemoryPsuedoRandomData, thr_id, midHash);
   }
 
+#endif

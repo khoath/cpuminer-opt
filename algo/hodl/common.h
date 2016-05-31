@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if (!(defined(_WIN64) || defined(__WINDOWS__)))
+
 #ifndef BITCOIN_CRYPTO_COMMON_H
 #define BITCOIN_CRYPTO_COMMON_H
 
@@ -62,3 +64,5 @@ void static inline WriteBE64(unsigned char* ptr, uint64_t x)
 }
 
 #endif // BITCOIN_CRYPTO_COMMON_H
+
+#endif

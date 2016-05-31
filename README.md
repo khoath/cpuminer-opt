@@ -1,6 +1,8 @@
 This project is forked by Jay D Dee.
 
-Building on linux:
+Updated for v3.3 Windows support.
+
+Building on linux prerequisites:
 
 It is assumed users know how to install packages on their system and
 be able to compile standard source packages. This is basic Linux and
@@ -18,6 +20,8 @@ will give a clue as to the missing package.
 
 Dependencies
 
+Linux
+
 libcurl
 jansson
 ssl
@@ -27,9 +31,61 @@ zlib
 libboost
 gmp
 
-
 tar xvzf [file.tar.gz]
 cd [file]
+
+Continue with common procedure.
+
+Building on Windows prerequisites:
+
+msys
+mingw_w64
+Visual C++ redistributable 2008 X64
+openssl, not sure about this
+
+Unpack msys into C:\msys or your preferred directory.
+
+Install mingw__w64 from win-builds.
+Follow instructions, check "msys or cygwin" and "x86_64" and accept default
+existing msys instalation.
+
+Building on Windows:
+
+Open a msys shell by double clickin on msys.bat.
+Note that msys shell uses linux syntax for file specifications, "C:\" is
+mounted at "/c/".
+
+Add mingw bin directory to PATH variable
+PATH="/c/mingw/opt/windows_64/bin/$PATH"
+
+Unpack source files using tar from msys shell, or using 7zip or similar Windows
+program.
+
+In msys shell cd to miner directory.
+cd /c/path/to/cpuminer-opt
+
+autogen.sh produces a missing ac_local but the compile still works.
+
+./autogen.sh
+
+The standard configure will work if you intend to run cpuminer from the msys
+shell. To be able to run it from a Windows command prompt you must manually
+specify the path to the crypto library. This does not always work so running
+from msys shell is recommended.
+
+To run in msys:
+./configure CFLAGS="-O3 -march=native" --with-curl --with-crypto
+
+To run in Windows:
+./configure CFLAGS="-O3 -march=native" --with-curl --with-crypto=/c/mingw/opt/windows_64/
+You may have to modify the path to suit your system.
+
+make
+
+
+Common procedure:
+
+build.sh and mingw64.sh are not supported for Windows at this time.
 
 ./build.sh should now work for most users. If not some tips follow.
 

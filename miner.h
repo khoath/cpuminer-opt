@@ -428,6 +428,8 @@ struct workio_cmd {
         } u;
 };
 
+uint32_t* get_stratum_job_ntime();
+
 enum algos {
         ALGO_NULL,
         ALGO_ARGON2,
@@ -467,7 +469,8 @@ enum algos {
         ALGO_SKEIN2,      
         ALGO_S3,          
         ALGO_VANILLA,
-        ALGO_X11,         
+        ALGO_X11,
+        ALGO_X11EVO,         
         ALGO_X11GOST,
         ALGO_X13,         
         ALGO_X14,        
@@ -517,6 +520,7 @@ static const char *algo_names[] = {
         "s3",
         "vanilla",
         "x11",
+        "x11evo",
         "x11gost",
         "x13",
         "x14",
@@ -618,6 +622,7 @@ Options:\n\
                           s3           S3\n\
                           vanilla      blake256r8vnl (VCash)\n\
                           x11          X11\n\
+                          x11evo       Revolvercoin\n\
                           x11gost      sib (SibCoin)\n\
                           x13          X13\n\
                           x14          X14\n\
