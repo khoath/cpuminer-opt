@@ -1,6 +1,6 @@
 This project is forked by Jay D Dee.
 
-Updated for v3.3 Windows support.
+Updated for v3.3.2 Windows support.
 
 Building on linux prerequisites:
 
@@ -28,7 +28,7 @@ ssl
 libgmp
 pthreads
 zlib
-libboost
+libboost  (no longer required)
 gmp
 
 tar xvzf [file.tar.gz]
@@ -49,7 +49,7 @@ Install mingw__w64 from win-builds.
 Follow instructions, check "msys or cygwin" and "x86_64" and accept default
 existing msys instalation.
 
-Building on Windows:
+Installing msys and mingw_w64 on Windows:
 
 Open a msys shell by double clickin on msys.bat.
 Note that msys shell uses linux syntax for file specifications, "C:\" is
@@ -64,25 +64,6 @@ program.
 In msys shell cd to miner directory.
 cd /c/path/to/cpuminer-opt
 
-autogen.sh produces a missing ac_local but the compile still works.
-
-./autogen.sh
-
-The standard configure will work if you intend to run cpuminer from the msys
-shell. To be able to run it from a Windows command prompt you must manually
-specify the path to the crypto library. This does not always work so running
-from msys shell is recommended.
-
-To run in msys:
-./configure CFLAGS="-O3 -march=native" --with-curl --with-crypto
-
-To run in Windows:
-./configure CFLAGS="-O3 -march=native" --with-curl --with-crypto=/c/mingw/opt/windows_64/
-You may have to modify the path to suit your system.
-
-make
-
-
 Common procedure:
 
 build.sh and mingw64.sh are not supported for Windows at this time.
@@ -92,8 +73,10 @@ build.sh and mingw64.sh are not supported for Windows at this time.
 The manual procedure is:
 
 ./autogen.sh
-./configure CFLAGS="-O3 -march=native" --with-crypto --with-curl
+./configure CFLAGS="-O3 -march=native" CXXFLAGS="$CFLAGS -std=gnu++11" --with-curl
 make
+
+The following tips may be out of date as of v3.2.2.
 
 Some users with AMD CPUs without AES_NI have reported problems compiling
 with build.sh or "-march=native". Problems have included compile errors

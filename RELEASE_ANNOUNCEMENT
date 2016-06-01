@@ -1,4 +1,4 @@
-Release 3.3.1 of cpuminer-opt is available for download with support for
+Release 3.3.2 of cpuminer-opt is available for download with support for
 Windows.
 
 
@@ -13,22 +13,19 @@ CPUs with AES_NI for even greater performance, including the Intel
 Sandy Bridge (Core-i 2xxx) and AMD equivalent. See the performance
 comparison below.
 
-New in 3.3.1:
+New in 3.3.2:
 
-- New algo x11evo (Revolver coin) added with AES_NI optimizated +109%
+- Fixed low difficulty shares mining hodl
+- Changed minimum CPU requirement for AES optimized mining, now requires
+  a CPU with AES and AVX1. This excludes first generation AES CPUs like
+  Nehalem and similar AMD. These CPUs can still mine using SSE2 optimizations.
+- Updated build.sh and README.md
+
+Other recent changes:
+
+- Windows support added for all algos except hodl without AES-AVX1.
+- New algo x11evo (Revolver coin) added with AES-AVX1 optimizated +109%
    and SSE2 +42% more hash than the current cpu miner.
-
-New in v3.3:
-
-- Windows support added for all algos.
-- hodl algo for CPUs without AES_NI is not supported in this release.
-- New build instructions for Windows requires msys and mingw_W64.
-  IMPORTANT: see README.md for build instructions.
-- No prebuilt binaries are available, you must compile yourself.
-- Cross compiling is not supported.
-
-Recently added or improved algos:
-
 - lyra2v2 algo SSE2 optimized +106%.
 - new algo hmq1725 (espers) AES_NI optimized +56% and SSE2 optimized +17%
  
@@ -46,49 +43,50 @@ differ from those listed below. YMMV.
 
 Normalized profitability = algo profitability * normalization rate
 
-               AES_NI    SSE2(1)   norm rate(5)
-               ------    ----      ---------
-x11             740 K    525 K        1
-x13             373      298          0.50
-x14             357      271          0.48
-x15             333      270          0.45
-x17             317      248          0.43
-x11gost         531      392          0.72
-x11evo          575      387          0.78
-quark          1195      924          1.61
-qubit          1090      765          1.45
-nist5          2000     1592          3.37
-zr5             850      650          1.15    
-x11gost         540      404          0.73
-c11             733      475          0.99
-myr-gr         1572     1560          2.12
-hmq1725         214      161          0.29
-cryptonight     290 H    165 H        0.00039
-hodl            275      200(6)       0.00037
-neoscrypt       (4)       32 K        0.043
-lyra2re         (4)      930          1.25
-lyra2rev2       (4)     1020          1.38
-argon2          (4)     33.7          0.045
-m7m             (4)     48.7          0.066
-groestl         (4)      931          1.26 
-skein           (4)     5747          7.77
-skein2          (4)     8675         11.7
-pentablake      (4)     3960          5.35
-keccak          (4)     7790         10.5
-scrypt          (4)      113          0.153
-sha256d         (4)     62.5          0.084
-blake           (4)     22.4 M       30.4
-blake2s         (4)     17.5         23.6
-vanilla         (4)     33.0         44.6
-blakecoin       (4)     33.9         45.8
-decred          (4)     22.6         30.5 
-axiom           (4)       72 H        0.098
-yescrypt        (4)     3760          0.0051
-scryptjane      (4)      250          0.00034
-cryptolight(2)  (4)      685          0.00093
-pluck(2)        (4)     1925          0.0026
-drop(2)         (4)      934 K        1.26
-fresh(2)        (4)      528 K        0.71
+              AES-AVX1   SSE2(1)   norm rate(5)
+              --------   -------   ---------
+x11             740 K     525 K        1
+x13             373       298          0.50
+x14             357       271          0.48
+x15             333       270          0.45
+x17             317       248          0.43
+x11gost         531       392          0.72
+x11evo          575       387          0.78
+quark          1195       924          1.61
+qubit          1090       765          1.45
+nist5          2000      1592          3.37
+zr5             850       650          1.15    
+x11gost         540       404          0.73
+x11evo          575       387          0.78
+c11             733       475          0.99
+myr-gr         1572      1560          2.12
+hmq1725         214       161          0.29
+cryptonight     290 H     165 H        0.00039
+hodl            275       200(6)       0.00037
+neoscrypt       (4)        32 K        0.043
+lyra2re         (4)       930          1.25
+lyra2rev2       (4)      1020          1.38
+argon2          (4)      33.7          0.045
+m7m             (4)      48.7          0.066
+groestl         (4)       931          1.26 
+skein           (4)      5747          7.77
+skein2          (4)      8675         11.7
+pentablake      (4)      3960          5.35
+keccak          (4)      7790         10.5
+scrypt          (4)       113          0.153
+sha256d         (4)      62.5          0.084
+blake           (4)      22.4 M       30.4
+blake2s         (4)      17.5         23.6
+vanilla         (4)      33.0         44.6
+blakecoin       (4)      33.9         45.8
+decred          (4)      22.6         30.5 
+axiom           (4)        72 H        0.098
+yescrypt        (4)      3760          0.0051
+scryptjane      (4)       250          0.00034
+cryptolight(2)  (4)       685          0.00093
+pluck(2)        (4)      1925          0.0026
+drop(2)         (4)       934 K        1.26
+fresh(2)        (4)       528 K        0.71
 
 Footnotes:
 (1) SSE2 rates are simulated in software (-march=core2).

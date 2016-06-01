@@ -346,9 +346,10 @@ bool register_json_rpc2( algo_gate_t *gate )
   gate->work_decode             = (void*)&jr2_work_decode;
   gate->stratum_handle_response = (void*)&jr2_stratum_handle_response;
   jsonrpc_2 = true;   // still needed
+  return true;
  }
 
-// run the hash_alt gate function for a specific algo
+// run the alternate hash function for a specific algo
 void exec_hash_function( int algo, void *output, const void *pdata )
 {
  int len = 0; // dummy arg

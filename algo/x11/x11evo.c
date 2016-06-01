@@ -89,7 +89,7 @@ void swap( uint8_t *a, uint8_t *b )
 void initPerm( uint8_t n[], uint8_t count )
 {
 	int i;
-	for (i = 0; i<count; i++)
+	for ( i = 0; i<count; i++ )
 		n[i] = i;
 }
 
@@ -97,44 +97,40 @@ int nextPerm( uint8_t n[], uint32_t count )
 {
 	uint32_t tail, i, j;
 
-	if (count <= 1)
+	if (unlikely( count <= 1 ))
 		return 0;
 
-	for (i = count - 1; i>0 && n[i - 1] >= n[i]; i--);
-	tail = i;
+	for ( i = count - 1; i>0 && n[i - 1] >= n[i]; i-- );
+           tail = i;
 
-	if (tail > 0) {
-		for (j = count - 1; j>tail && n[j] <= n[tail - 1]; j--);
-		swap(&n[tail - 1], &n[j]);
-	}
+	if ( tail > 0 )
+            for ( j = count - 1; j>tail && n[j] <= n[tail - 1]; j-- );
+	         swap( &n[tail - 1], &n[j] );
 
-	for (i = tail, j = count - 1; i<j; i++, j--)
-		swap(&n[i], &n[j]);
+	for ( i = tail, j = count - 1; i<j; i++, j-- )
+		swap( &n[i], &n[j] );
 
-	return (tail != 0);
+	return ( tail != 0 );
 }
 
 void getAlgoString( char *str, uint32_t count )
 {
 	uint8_t algoList[HASH_FUNC_COUNT];
-	char s[100];
 	char *sptr;
+        int j;
+        int k;
+	initPerm( algoList, HASH_FUNC_COUNT );
 
-	initPerm(algoList, HASH_FUNC_COUNT);
-
-	int j;
-
-	int k;
-	for (k = 0; k < count; k++) {
-		nextPerm(algoList, HASH_FUNC_COUNT);
-	}
+	for ( k = 0; k < count; k++ )
+		nextPerm( algoList, HASH_FUNC_COUNT );
 
 	sptr = str;
-	for (j = 0; j < HASH_FUNC_COUNT; j++) {
-		if (algoList[j] >= 10)
-			sprintf(sptr, "%c", 'A' + (algoList[j] - 10));
+	for ( j = 0; j < HASH_FUNC_COUNT; j++ )
+        {
+		if ( algoList[j] >= 10 )
+			sprintf( sptr, "%c", 'A' + (algoList[j] - 10) );
 		else
-			sprintf(sptr, "%u", algoList[j]);
+			sprintf( sptr, "%u", algoList[j] );
 		sptr++;
 	}
 	*sptr = 0;
@@ -148,23 +144,17 @@ void evocoin_twisted_code( char *result, char *code )
 	h32 = be32toh(*be32);
 	
 	uint32_t count = getCurrentAlgoSeq(h32, INITIAL_DATE);
-
 	getAlgoString(code, count);
-
 	sprintf(result, "_%d_%s_", count, code);
 }
 
 static inline void x11evo_hash( void *state, const void *input )
 {
-   x11evo_ctx_holder ctx;
-   int size = 64;
-
-   uint32_t hashA[16], hashB[16];
-
-   memcpy( &ctx, &x11evo_ctx, sizeof(x11evo_ctx) );
-
+   uint32_t hash[16];
    char completeCode[64];
    char resultCode[HASH_FUNC_COUNT + 1];
+   x11evo_ctx_holder ctx;
+   memcpy( &ctx, &x11evo_ctx, sizeof(x11evo_ctx) );
    evocoin_twisted_code( completeCode, resultCode );
 
    int i;
@@ -183,61 +173,61 @@ static inline void x11evo_hash( void *state, const void *input )
         {
            case 0:
 	      sph_blake512( &ctx.blake, (char*)input, 80 );
-	      sph_blake512_close( &ctx.blake, (char*)hashA );
+	      sph_blake512_close( &ctx.blake, (char*)hash );
 	      break;
 	   case 1:
-	      sph_bmw512( &ctx.bmw, (char*)hashA, size );
-	      sph_bmw512_close( &ctx.bmw, (char*)hashA );
+	      sph_bmw512( &ctx.bmw, (char*)hash, size );
+	      sph_bmw512_close( &ctx.bmw, (char*)hash );
 	      break;
 	   case 2:
 #ifdef NO_AES_NI
-	      sph_groestl512( &ctx.groestl, (char*)hashA, size );
-	      sph_groestl512_close( &ctx.groestl, (char*)hashA );
+	      sph_groestl512( &ctx.groestl, (char*)hash, size );
+	      sph_groestl512_close( &ctx.groestl, (char*)hash );
 #else
-              update_groestl( &ctx.groestl, (char*)hashA, 512 );
-              final_groestl( &ctx.groestl, (char*)hashA );
+              update_groestl( &ctx.groestl, (char*)hash, 512 );
+              final_groestl( &ctx.groestl, (char*)hash );
 #endif
 	      break;
 	    case 3:
-	      sph_skein512( &ctx.skein, (char*)hashA, size );
-	      sph_skein512_close( &ctx.skein, (char*)hashA );
+	      sph_skein512( &ctx.skein, (char*)hash, size );
+	      sph_skein512_close( &ctx.skein, (char*)hash );
 	      break;
 	    case 4:
-	      sph_jh512( &ctx.jh, (char*)hashA, size );
-	      sph_jh512_close( &ctx.jh, (char*)hashA );
+	      sph_jh512( &ctx.jh, (char*)hash, size );
+	      sph_jh512_close( &ctx.jh, (char*)hash );
 	      break;
 	    case 5:
-	      sph_keccak512( &ctx.keccak, (char*)hashA, size );
-	      sph_keccak512_close( &ctx.keccak, (char*)hashA );
+	      sph_keccak512( &ctx.keccak, (char*)hash, size );
+	      sph_keccak512_close( &ctx.keccak, (char*)hash );
 	      break;
 	    case 6:
-              update_luffa( &ctx.luffa, (char*)hashA, 512 );
-              final_luffa( &ctx.luffa, (char*)hashA );
+              update_luffa( &ctx.luffa, (char*)hash, 512 );
+              final_luffa( &ctx.luffa, (char*)hash );
 	      break;
 	    case 7:
-              cubehashUpdate( &ctx.cube, (char*)hashA, 64 );
-              cubehashDigest( &ctx.cube, (char*)hashA );
+              cubehashUpdate( &ctx.cube, (char*)hash, 64 );
+              cubehashDigest( &ctx.cube, (char*)hash );
 	      break;
 	    case 8:
-	      sph_shavite512( &ctx.shavite, (char*)hashA, size );
-	      sph_shavite512_close( &ctx.shavite, (char*)hashA );
+	      sph_shavite512( &ctx.shavite, (char*)hash, size );
+	      sph_shavite512_close( &ctx.shavite, (char*)hash );
 	      break;
 	    case 9:
-              update_sd( &ctx.simd, (char*)hashA, 512 );
-              final_sd( &ctx.simd, (char*)hashA );
+              update_sd( &ctx.simd, (char*)hash, 512 );
+              final_sd( &ctx.simd, (char*)hash );
 	      break;
 	    case 10:
 #ifdef NO_AES_NI
-	      sph_echo512( &ctx.echo, (char*)hashA, size );
-	      sph_echo512_close( &ctx.echo, (char*)hashA );
+	      sph_echo512( &ctx.echo, (char*)hash, size );
+	      sph_echo512_close( &ctx.echo, (char*)hash );
 #else
-              update_echo( &ctx.echo, (char*)hashA, 512 );
-              final_echo( &ctx.echo, (char*)hashA );
+              update_echo( &ctx.echo, (char*)hash, 512 );
+              final_echo( &ctx.echo, (char*)hash );
 #endif
 	      break;
 	}
     }
-    memcpy(state, hashA, 32);
+    memcpy( state, hash, 32 );
 }
 
 static const uint32_t diff1targ = 0x0000ffff;
@@ -250,12 +240,10 @@ int scanhash_x11evo( int thr_id, struct work* work, uint32_t max_nonce,
         uint32_t *ptarget = work->target;
 	uint32_t n = pdata[19] - 1;
 	const uint32_t first_nonce = pdata[19];
-	const uint32_t Htarg = ptarget[7];
 	uint32_t hash64[8] __attribute__((aligned(32)));
 	uint32_t endiandata[32];
 
 	int kk = 0;
-#pragma unroll
 	for (; kk < 32; kk++) {
 		be32enc(&endiandata[kk], ((uint32_t*)pdata)[kk]);
 	};
@@ -347,7 +335,6 @@ bool register_x11evo_algo( algo_gate_t* gate )
   gate->aes_ni_optimized = true;
   gate->scanhash  = (void*)&scanhash_x11evo;
   gate->hash      = (void*)&x11evo_hash;
-//  gate->get_max64 = (void*)&get_max64_0x3ffff;
   gate->hash_alt  = (void*)&x11evo_hash;
   init_x11evo_ctx();
   return true;

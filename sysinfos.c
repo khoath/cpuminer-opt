@@ -154,6 +154,18 @@ bool has_aes_ni()
 #endif
 }
 
+bool has_avx1()
+{
+#ifdef __arm__
+        return false;
+#else
+        int cpu_info[4] = { 0 };
+        cpuid(1, cpu_info);
+        return cpu_info[2] & AVX1_Flag;
+#endif
+}
+
+
 void bestcpu_feature(char *outbuf, int maxsz)
 {
 #ifdef __arm__

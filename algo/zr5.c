@@ -77,10 +77,9 @@ void init_zr5_ctx()
      sph_keccak512_init(&zr5_ctx.keccak);
 }  
 
-static void zr5hash(void *state, const void *input) {
+static void zr5hash(void *state, const void *input)
+{
     
-sph_keccak512_context    ctx_keccak;
-   
 DATA_ALIGN16(unsigned char hashbuf[128]);
 DATA_ALIGN16(unsigned char hash[128]);
 DATA_ALIGN16(size_t hashptr);
@@ -106,11 +105,9 @@ static const int arrOrder[][4] =
     zr5_ctx_holder ctx;
     memcpy( &ctx, &zr5_ctx, sizeof(zr5_ctx) );
 
-//    sph_keccak512_init(&ctx_keccak);
     sph_keccak512 (&ctx.keccak, input, 80);
     sph_keccak512_close(&ctx.keccak, hash);
   
-    //unsigned int round;
     unsigned int nOrder = *(unsigned int *)(&hash) % 24;
     unsigned int i = 0;
 
