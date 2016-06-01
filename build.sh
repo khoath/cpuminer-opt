@@ -18,7 +18,9 @@ rm -f config.status
 # Debian 7.7 / Ubuntu 14.04 (gcc 4.7+)
 #extracflags="$extracflags -Ofast -flto -fuse-linker-plugin -ftree-loop-if-convert-stores"
 
-./configure --with-crypto --with-curl CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11 -fpermissive"
+CFLAGS="-O3 -march=native -Wall" \
+CXXFLAGS="$CFLAGS -std=gnu++11 -fpermissive" \
+./configure --with-crypto --with-curl
 
 make -j 4
 
