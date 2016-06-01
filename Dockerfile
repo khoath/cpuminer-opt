@@ -8,18 +8,11 @@ FROM		debian:jessie
 MAINTAINER	Eugene Bujak <hmage@hmage.net>
 
 RUN		echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/zz-local-tame
-RUN		apt-get update
-RUN		apt-get upgrade -y
-RUN		apt-get install -y git ca-certificates                                       # for cloning from git
-RUN		apt-get install -y build-essential autoconf automake                         # compiler and tools
-RUN		apt-get install -y libssl-dev libcurl4-openssl-dev libjansson-dev libgmp-dev # library dependencies
-
+RUN		apt-get update && apt-get upgrade -y && apt-get install -y git ca-certificates build-essential autoconf automake libssl-dev libcurl4-openssl-dev libjansson-dev libgmp-dev
 RUN		git clone https://github.com/hmage/cpuminer-opt
 
 WORKDIR		/cpuminer-opt
 
-RUN		autoreconf -f -i -v
-RUN		CFLAGS="-O3 -maes -mssse3 -mtune=intel -DUSE_ASM" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-crypto --with-curl
-RUN		make -j8
+RUN		autoreconf -f -i -v && CFLAGS="-O3 -maes -mssse3 -mtune=intel -DUSE_ASM" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-curl && make -j8
 
 ENTRYPOINT	["./cpuminer"]
