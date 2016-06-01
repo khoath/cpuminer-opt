@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if (!(defined(_WIN64) || defined(__WINDOWS__)))
+
 #include "sha256.h"
 
 #include "common.h"
@@ -187,3 +189,5 @@ CSHA256& CSHA256::Reset()
     sha256::Initialize(s);
     return *this;
 }
+
+#endif

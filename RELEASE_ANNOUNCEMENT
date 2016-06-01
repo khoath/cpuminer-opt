@@ -1,22 +1,35 @@
-        Release 3.2.5 of cpuminer-opt is available for download.
+Release 3.3.1 of cpuminer-opt is available for download with support for
+Windows.
 
 
 All users are encouraged to upgrade.
 
-cpuminer-opt now supports 32 algorithms on CPUs with at least SSE2
+cpuminer-opt now supports 36 algorithms on CPUs with at least SSE2
 capabilities including Intel Core2 and AMD equivalent. See the
 performance chart below for details.
 
-In addition 13 algorithms have optimizations to take advantage of
+In addition 16 algorithms have optimizations to take advantage of
 CPUs with AES_NI for even greater performance, including the Intel
-Sandy Bridge (Core-i 2xxx) and AMD equivalent.
+Sandy Bridge (Core-i 2xxx) and AMD equivalent. See the performance
+comparison below.
 
-New in v3.2.5
+New in 3.3.1:
+
+- New algo x11evo (Revolver coin) added with AES_NI optimizated +109%
+   and SSE2 +42% more hash than the current cpu miner.
+
+New in v3.3:
+
+- Windows support added for all algos.
+- hodl algo for CPUs without AES_NI is not supported in this release.
+- New build instructions for Windows requires msys and mingw_W64.
+  IMPORTANT: see README.md for build instructions.
+- No prebuilt binaries are available, you must compile yourself.
+- Cross compiling is not supported.
+
+Recently added or improved algos:
 
 - lyra2v2 algo SSE2 optimized +106%.
-
-New in 3.2.4
-
 - new algo hmq1725 (espers) AES_NI optimized +56% and SSE2 optimized +17%
  
 Users with non-SSE2 CPUs or who want to mine algos not supported by
@@ -40,6 +53,8 @@ x13             373      298          0.50
 x14             357      271          0.48
 x15             333      270          0.45
 x17             317      248          0.43
+x11gost         531      392          0.72
+x11evo          575      387          0.78
 quark          1195      924          1.61
 qubit          1090      765          1.45
 nist5          2000     1592          3.37
@@ -49,7 +64,7 @@ c11             733      475          0.99
 myr-gr         1572     1560          2.12
 hmq1725         214      161          0.29
 cryptonight     290 H    165 H        0.00039
-hodl            275      200          0.00037
+hodl            275      200(6)       0.00037
 neoscrypt       (4)       32 K        0.043
 lyra2re         (4)      930          1.25
 lyra2rev2       (4)     1020          1.38
@@ -81,4 +96,5 @@ Footnotes:
 (3) CPU architecture not supported for algo. It won't work.
 (4) AES_NI Optimization not available for CPU artchitecture. Uses SSE2, slower.
 (5) Normalised profitability = algo profitability * norm rate, x11 = 1
+(6) Not supported on Windows
 Unlisted algos are in an unknown state

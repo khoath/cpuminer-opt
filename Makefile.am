@@ -119,6 +119,7 @@ cpuminer_SOURCES = \
   algo/s3.c \
   algo/tiger/sph_tiger.c \
   algo/x11/x11.c \
+  algo/x11/x11evo.c \
   algo/x11/x11gost.c \
   algo/x11/c11.c \
   algo/x13/x13.c \

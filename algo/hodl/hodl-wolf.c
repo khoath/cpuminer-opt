@@ -5,7 +5,6 @@
 #include "wolf-aes.h"
 #include "hodl-wolf.h"
 #include "miner.h"
-//#include "wolf-aes.h"
 
 void GenerateGarbageCore(CacheEntry *Garbage, int ThreadID, int ThreadCount, void *MidHash)
 {
@@ -27,7 +26,6 @@ void Rev256(uint32_t *Dest, const uint32_t *Src)
 
 int scanhash_hodl_wolf( int threadNumber, struct work* work, uint32_t max_nonce,
                    uint64_t *hashes_done, CacheEntry *Garbage )
-//                   unsigned long *hashes_done, CacheEntry *Garbage )
 {
     uint32_t *pdata = work->data;
     uint32_t *ptarget = work->target;

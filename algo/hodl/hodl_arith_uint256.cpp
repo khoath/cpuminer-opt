@@ -3,6 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if (!(defined(_WIN64) || defined(__WINDOWS__)))
+
 #include "hodl_arith_uint256.h"
 
 #include "hodl_uint256.h"
@@ -258,3 +260,5 @@ arith_uint256 UintToArith256(const uint256 &a)
         b.pn[x] = ReadLE32(a.begin() + x*4);
     return b;
 }
+
+#endif

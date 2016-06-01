@@ -6,6 +6,12 @@
 #define USER_AGENT PACKAGE_NAME "/" PACKAGE_VERSION
 #define MAX_CPUS 16
 
+//#ifndef NO_AES_NI
+ #ifndef __AES__
+  #define NO_AES_NI
+ #endif
+//#endif
+
 #ifdef _MSC_VER
 
 #undef USE_ASM  /* to fix */
@@ -20,12 +26,6 @@
 #define __x86_64__ 1
 #elif defined(_M_X86)
 #define __i386__ 1
-#endif
-
-#else /* _MSC_VER */
-
-#ifndef __AES__
-#define NO_AES_NI
 #endif
 
 #endif /* _MSC_VER */
@@ -290,7 +290,7 @@ void   work_set_target_ratio( struct work* work, uint32_t* hash );
 
 void   get_currentalgo( char* buf, int sz );
 bool   has_aes_ni( void );
-bool   has_sse2( void );
+bool   has_sse2();
 void   bestcpu_feature( char *outbuf, int maxsz );
 void   processor_id ( int functionnumber, int output[4] );
 
@@ -428,6 +428,8 @@ struct workio_cmd {
         } u;
 };
 
+uint32_t* get_stratum_job_ntime();
+
 enum algos {
         ALGO_NULL,
         ALGO_ARGON2,
@@ -467,7 +469,8 @@ enum algos {
         ALGO_SKEIN2,      
         ALGO_S3,          
         ALGO_VANILLA,
-        ALGO_X11,         
+        ALGO_X11,
+        ALGO_X11EVO,         
         ALGO_X11GOST,
         ALGO_X13,         
         ALGO_X14,        
@@ -517,6 +520,7 @@ static const char *algo_names[] = {
         "s3",
         "vanilla",
         "x11",
+        "x11evo",
         "x11gost",
         "x13",
         "x14",
@@ -618,6 +622,7 @@ Options:\n\
                           s3           S3\n\
                           vanilla      blake256r8vnl (VCash)\n\
                           x11          X11\n\
+                          x11evo       Revolvercoin\n\
                           x11gost      sib (SibCoin)\n\
                           x13          X13\n\
                           x14          X14\n\

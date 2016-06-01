@@ -243,6 +243,11 @@ void proper_exit(int reason)
 	exit(reason);
 }
 
+uint32_t* get_stratum_job_ntime()
+{
+   return stratum.job.ntime;
+}
+
 void work_free(struct work *w)
 {
 	if (w->txs) free(w->txs);
@@ -709,8 +714,8 @@ static int share_result( int result, struct work *work, const char *reason )
    const char *sres;
    double hashcount = 0.;
    double hashrate = 0.;
-   char hc_units = 0;
-   char hr_units = 0;
+   char hc_units[2] = {0,0};
+   char hr_units[2] = {0,0};
    int i;
 
    pthread_mutex_lock(&stats_lock);
@@ -727,15 +732,15 @@ static int share_result( int result, struct work *work, const char *reason )
 	sres = (result ? CL_GRN "yes!" : CL_RED "nooooo");
    else
 	sres = (result ? "(yes!!!)" : "(nooooo)");
-   scale_hash_for_display ( &hashcount, &hc_units );
-   scale_hash_for_display ( &hashrate, &hr_units );
+   scale_hash_for_display ( &hashcount, hc_units );
+   scale_hash_for_display ( &hashrate, hr_units );
    if ( hc_units )
       sprintf(hc, "%.2f", hashcount );
    else
       // no fractions of a hash
       sprintf(hc, "%.0f", hashcount );
    sprintf(hr, "%.2f", hashrate );
-   applog(LOG_NOTICE, "accepted: %lu/%lu (%.0f%%), %s %cH, %s %cH/s %s",
+   applog(LOG_NOTICE, "accepted: %lu/%lu (%.0f%%), %s %sH, %s %sH/s %s",
               accepted_count, accepted_count + rejected_count,
               100. * accepted_count / (accepted_count + rejected_count),
               hc, hc_units, hr, hr_units, sres );
@@ -1514,7 +1519,8 @@ static void *miner_thread( void *userdata )
 	 affine_to_cpu_mask(thr_id, (unsigned long)opt_affinity);
       }
    }
-   // alloc buffer and/or return buffer pointer
+   // First thread to get here allocates the buffer,
+   // the others just return the pointer to it.
    if ( !algo_gate.alloc_scratchbuf( &scratchbuf ) )
    {
       applog(LOG_ERR, "%s buffer allocation failed", algo_names[opt_algo] );
@@ -1627,7 +1633,7 @@ static void *miner_thread( void *userdata )
        work_restart[thr_id].restart = 0;
        hashes_done = 0;
        gettimeofday((struct timeval *) &tv_start, NULL);
- 
+
        // Scanhash
        rc = (int) algo_gate.scanhash( thr_id, &work, max_nonce, &hashes_done,
                                       scratchbuf );
@@ -1663,20 +1669,20 @@ static void *miner_thread( void *userdata )
        {
           char hc[16];
           char hr[16];
-          char hc_units = 0;
-          char hr_units = 0;
+          char hc_units[2] = {0,0};
+          char hr_units[2] = {0,0};
           double hashcount = thr_hashcount[thr_id];
           double hashrate  = thr_hashrates[thr_id];
           if ( hashcount )
           {
-             scale_hash_for_display( &hashcount, &hc_units );
-             scale_hash_for_display( &hashrate,  &hr_units );
+             scale_hash_for_display( &hashcount, hc_units );
+             scale_hash_for_display( &hashrate,  hr_units );
              if ( hc_units )
                 sprintf( hc, "%.2f", hashcount );
              else // no fractions of a hash
                 sprintf( hc, "%.0f", hashcount );
              sprintf( hr, "%.2f", hashrate );
-             applog( LOG_INFO, "CPU #%d: %s %cH, %s %cH/s",
+             applog( LOG_INFO, "CPU #%d: %s %sH, %s %sH/s",
                                thr_id, hc, hc_units, hr, hr_units );
           }
        }
@@ -1693,19 +1699,19 @@ static void *miner_thread( void *userdata )
           if ( hashcount )
           {
              char hc[16];
-             char hc_units = 0;
+             char hc_units[2] = {0,0};
              char hr[16];
-             char hr_units = 0;
+             char hr_units[2] = {0,0};
              global_hashcount = hashcount;
              global_hashrate  = hashrate;
-             scale_hash_for_display( &hashcount, &hc_units );
-             scale_hash_for_display( &hashrate,  &hr_units );
+             scale_hash_for_display( &hashcount, hc_units );
+             scale_hash_for_display( &hashrate,  hr_units );
              if ( hc_units )
                 sprintf( hc, "%.2f", hashcount );
              else  // no fractions of a hash
                 sprintf( hc, "%.0f", hashcount );
              sprintf( hr, "%.2f", hashrate );
-             applog( LOG_NOTICE, "Total: %s %cH, %s %cH/s",
+             applog( LOG_NOTICE, "Total: %s %sH, %s %sH/s",
                                   hc, hc_units, hr, hr_units );
           }
        }
