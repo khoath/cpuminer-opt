@@ -112,11 +112,13 @@ int hodl_scanhash( int thr_id, struct work* work, uint32_t max_nonce,
 #ifdef NO_AES_NI
 #if (!(defined(_WIN64) || defined(__WINDOWS__)))
   GetPsuedoRandomData( scratchbuf, work->data, thr_id );
-  scanhash_hodl( thr_id, work, max_nonce, hashes_done, scratchbuf );
+  pthread_barrier_wait( &hodl_barrier );
+  return scanhash_hodl( thr_id, work, max_nonce, hashes_done, scratchbuf );
 #endif
 #else
   GenRandomGarbage( scratchbuf, work->data, thr_id );
-  scanhash_hodl_wolf( thr_id, work, max_nonce, hashes_done, scratchbuf );
+  pthread_barrier_wait( &hodl_barrier );
+  return scanhash_hodl_wolf( thr_id, work, max_nonce, hashes_done, scratchbuf );
 #endif
 }
 

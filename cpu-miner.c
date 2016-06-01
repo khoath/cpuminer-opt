@@ -2587,7 +2587,7 @@ static void show_credits()
 {
 	printf("\n         **********  "PACKAGE_NAME" "PACKAGE_VERSION"  *********** \n");
         printf("     A CPU miner with multi algo support and optimized for CPUs\n");
-        printf("     with AES_NI extension.\n");
+        printf("     with AES_NI and AVX1 extensions.\n");
 	printf("     BTC donation address: 12tdvfF7KmAsihBXQXynT6E6th2c2pByTT\n");
         printf("     Forked from TPruvot's cpuminer-multi with credits\n");
         printf("     to Lucas Jones, elmad, palmd, djm34, pooler, ig0tik3d,\n");
@@ -2600,6 +2600,7 @@ bool check_cpu_capability ()
      unsigned int nExIds;
      char CPUBrandString[0x40];
      bool cpu_has_aes  = has_aes_ni();
+     bool cpu_has_avx1 = has_avx1();
      bool sw_has_aes   = false;
      bool cpu_has_sse2 = has_sse2();
      bool sw_has_sse2 = false;
@@ -2638,30 +2639,30 @@ bool check_cpu_capability ()
      #endif
 
     void printf_mine_with_aes()
-        { printf("Start mining with AES_NI optimizations...\n\n"); }
+        { printf("Start mining with AES-AVX1 optimizations...\n\n"); }
     void printf_mine_without_aes()
-        { printf("Starting mining without AES_NI optimizations...\n\n"); }
+        { printf("Starting mining without AES-AVX1 optimizations...\n\n"); }
     void printf_bad_cpu()
         { printf("%sUnsupported CPU architecture, requires SSE2 minimum.%s\n",red,CL_N); }
     void printf_bad_build()
         { printf("%sIncompatible SW build, rebuild with \"-march=native\"%s\n",red,CL_N); }
     void printf_rebuild_for_faster()
-        { printf("CPU and algo support AES_NI, but SW build does not.\n");
+        { printf("CPU and algo support AES-AVX1, but SW build does not.\n");
           printf("Rebuild with \"-march=native\" for better performance.\n"); } 
 
 
      printf("Checking CPU capatibility...\n");
      printf( "        %s\n", CPUBrandString );
 
-     printf("   CPU arch supports AES_NI...");
-     if ( cpu_has_aes )
+     printf("   CPU arch supports AES-AVX1...");
+     if ( cpu_has_aes && cpu_has_avx1 )
      {
         printf("%s\n", grn_yes );
-        printf("   SW built for AES_NI........");
+        printf("   SW built for AES-AVX1........");
         if ( sw_has_aes )
         {
             printf("%s\n", grn_yes);
-            printf("   Algo supports AES_NI.......");
+            printf("   Algo supports AES-AVX1.......");
             if ( algo_has_aes )
             {
                printf("%s\n", grn_yes);
@@ -2680,7 +2681,7 @@ bool check_cpu_capability ()
             printf("%s\n", ylw_no );
             if ( algo_has_aes )
             {
-               printf("   Algo supports AES_NI.......");
+               printf("   Algo supports AES-AVX1.......");
                printf("%s\n", grn_yes);
                printf_rebuild_for_faster();
             }
@@ -2869,6 +2870,7 @@ int main(int argc, char *argv[])
 			applog(LOG_DEBUG, "Binding process to cpu mask %x", opt_affinity);
 		affine_to_cpu_mask(-1, (unsigned long)opt_affinity);
 	}
+
 
 //#ifdef HAVE_SYSLOG_H
 //	if (use_syslog)
