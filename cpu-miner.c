@@ -114,6 +114,7 @@ char *short_url = NULL;
 static unsigned char pk_script[25] = { 0 };
 static size_t pk_script_size = 0;
 static char coinbase_sig[101] = { 0 };
+bool opt_stratum_stats = true;
 char *opt_cert;
 char *opt_proxy;
 long opt_proxy_type;

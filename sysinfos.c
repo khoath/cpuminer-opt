@@ -122,13 +122,104 @@ static inline void cpuid(int functionnumber, int output[4]) {
 	}
 #endif
 }
-#endif /* !__arm__ */
+#else /* !__arm__ */
+#define cpuid(fn, out) out[0] = 0;
+#endif
 
 // I presume an assembly function needs to be inline and
 // requires a wrapper to work like a normal function
-void processor_id ( int functionnumber, int output[4] )
-{ cpuid( functionnumber, output ); }
-  
+void processor_id(int functionnumber, int output[4])
+{
+	cpuid(functionnumber, output);
+}
+
+// For the i7-5775C will output : Intel(R) Core(TM) i7-5775C CPU @ 3.30GHz
+void cpu_getname(char *outbuf, size_t maxsz)
+{
+	memset(outbuf, 0, maxsz);
+#ifdef WIN32
+	char brand[0xC0] = { 0 };
+	int output[4] = { 0 }, ext;
+	cpuid(0x80000000, output);
+	ext = output[0];
+	if (ext >= 0x80000004) {
+		for (int i = 2; i <= (ext & 0xF); i++) {
+			cpuid(0x80000000+i, output);
+			memcpy(&brand[(i-2) * 4*sizeof(int)], output, 4*sizeof(int));
+		}
+		snprintf(outbuf, maxsz, "%s", brand);
+	} else {
+		// Fallback, for the i7-5775C will output
+		// Intel64 Family 6 Model 71 Stepping 1, GenuineIntel
+		snprintf(outbuf, maxsz, "%s", getenv("PROCESSOR_IDENTIFIER"));
+	}
+#else
+	// Intel(R) Xeon(R) CPU E3-1245 V2 @ 3.40GHz
+	FILE *fd = fopen("/proc/cpuinfo", "rb");
+	char *buf = NULL, *p, *eol;
+	size_t size = 0;
+	if (!fd) return;
+	while(getdelim(&buf, &size, 0, fd) != -1) {
+		if (buf && (p = strstr(buf, "model name\t")) && strstr(p, ":")) {
+			p = strstr(p, ":");
+			if (p) {
+				p += 2;
+				eol = strstr(p, "\n"); if (eol) *eol = '\0';
+				snprintf(outbuf, maxsz, "%s", p);
+			}
+			break;
+		}
+	}
+	free(buf);
+	fclose(fd);
+#endif
+}
+
+void cpu_getmodelid(char *outbuf, size_t maxsz)
+{
+	memset(outbuf, 0, maxsz);
+#ifdef WIN32
+	// For the i7-5775C will output 6:4701:8
+	snprintf(outbuf, maxsz, "%s:%s:%s", getenv("PROCESSOR_LEVEL"), // hexa ?
+		getenv("PROCESSOR_REVISION"), getenv("NUMBER_OF_PROCESSORS"));
+#else
+	FILE *fd = fopen("/proc/cpuinfo", "rb");
+	char *buf = NULL, *p, *eol;
+	int cpufam = 0, model = 0, stepping = 0;
+	size_t size = 0;
+	if (!fd) return;
+	while(getdelim(&buf, &size, 0, fd) != -1) {
+		if (buf && (p = strstr(buf, "cpu family\t")) && strstr(p, ":")) {
+			p = strstr(p, ":");
+			if (p) {
+				p += 2;
+				cpufam = atoi(p);
+			}
+		}
+		if (buf && (p = strstr(buf, "model\t")) && strstr(p, ":")) {
+			p = strstr(p, ":");
+			if (p) {
+				p += 2;
+				model = atoi(p);
+			}
+		}
+		if (buf && (p = strstr(buf, "stepping\t")) && strstr(p, ":")) {
+			p = strstr(p, ":");
+			if (p) {
+				p += 2;
+				stepping = atoi(p);
+			}
+		}
+		if (cpufam && model && stepping) {
+			snprintf(outbuf, maxsz, "%x:%02x%02x:%d", cpufam, model, stepping, num_cpus);
+			outbuf[maxsz-1] = '\0';
+			break;
+		}
+	}
+	free(buf);
+	fclose(fd);
+#endif
+}
 
 // http://en.wikipedia.org/wiki/CPUID
 #define OSXSAVE_Flag  (1 << 27)
@@ -179,7 +270,7 @@ bool has_sse2()
 #endif
 }
 
-void bestcpu_feature(char *outbuf, int maxsz)
+void cpu_bestfeature(char *outbuf, size_t maxsz)
 {
 #ifdef __arm__
 	sprintf(outbuf, "ARM");
