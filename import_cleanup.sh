@@ -9,4 +9,5 @@ find . -name '*.old' -print0 | xargs -0 rm -rvf
 find . -name '*.fail' -print0 | xargs -0 rm -rvf
 find . -name '*.del' -print0 | xargs -0 rm -rvf
 find . -name '*.swo' -print0 | xargs -0 rm -rvf
+find . -name '*.swp' -print0 | xargs -0 rm -rvf
 find . -name '*.wtf' -print0 | xargs -0 rm -rvf
