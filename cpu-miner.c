@@ -1519,8 +1519,7 @@ static void *miner_thread( void *userdata )
 	 affine_to_cpu_mask(thr_id, (unsigned long)opt_affinity);
       }
    }
-   // First thread to get here allocates the buffer,
-   // the others just return the pointer to it.
+   // no longer used by hodl, other algos allloc buf per thread
    if ( !algo_gate.alloc_scratchbuf( &scratchbuf ) )
    {
       applog(LOG_ERR, "%s buffer allocation failed", algo_names[opt_algo] );
@@ -1909,6 +1908,7 @@ bool std_stratum_handle_response( json_t *val )
     valid = json_is_true( res_val );
     share_result( valid, NULL, err_val ?
                   json_string_value( json_array_get(err_val, 1) ) : NULL );
+    return true;
 }
 
 bool jr2_stratum_handle_response( json_t *val )
@@ -1930,6 +1930,7 @@ bool jr2_stratum_handle_response( json_t *val )
     else
         valid = json_is_null( err_val );
     share_result( valid, NULL, err_val ? json_string_value(err_val) : NULL );
+    return true;
 }
 
 static bool stratum_handle_response( char *buf )

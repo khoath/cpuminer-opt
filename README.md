@@ -73,7 +73,7 @@ build.sh and mingw64.sh are not supported for Windows at this time.
 The manual procedure is:
 
 ./autogen.sh
-./configure CFLAGS="-O3 -march=native" CXXFLAGS="$CFLAGS -std=gnu++11" --with-curl
+CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-curl
 make
 
 The following tips may be out of date as of v3.2.2.
