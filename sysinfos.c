@@ -154,7 +154,7 @@ bool has_aes_ni()
 #endif
 }
 
-bool has_avx1()
+bool has_avx()
 {
 #ifdef __arm__
         return false;

@@ -1,30 +1,23 @@
-Release 3.3.3 of cpuminer-opt is available for download with support for
+Release 3.3.4 of cpuminer-opt is available for download with support for
 Windows.
 
 
 All users are encouraged to upgrade.
 
-cpuminer-opt now supports 36 algorithms on CPUs with at least SSE2
+cpuminer-opt now supports 38 algorithms on CPUs with at least SSE2
 capabilities including Intel Core2 and AMD equivalent. See the
 performance chart below for details.
 
-In addition 16 algorithms have optimizations to take advantage of
+In addition 19 algorithms have optimizations to take advantage of
 CPUs with AES_NI for even greater performance, including the Intel
 Sandy Bridge (Core-i 2xxx) and AMD equivalent. See the performance
 comparison below.
 
-New in v3.3.3:
+New in v3.3.4:
 
-- Fixed another low diif problem with hodl that occurs at startup
-- minor change to build.sh
-
-New in v3.3.2
-
-- Fixed low difficulty shares mining hodl
-- Changed minimum CPU requirement for AES optimized mining, now requires
-  a CPU with AES and AVX1. This excludes first generation AES CPUs like
-  Nehalem and similar AMD. These CPUs can still mine using SSE2 optimizations.
-- Updated build.sh and README.md
+- Removed check for incompatible SW build because it didn't work
+  for users of westmere CPUs.
+- m7m algo AES optimized +75%, SSE2 +59%
 
 Other recent changes:
 
@@ -68,11 +61,11 @@ myr-gr         1572      1560          2.12
 hmq1725         214       161          0.29
 cryptonight     290 H     165 H        0.00039
 hodl            275       200(6)       0.00037
+m7m            85.4 K    77.4 K        0.115
 neoscrypt       (4)        32 K        0.043
 lyra2re         (4)       930          1.25
 lyra2rev2       (4)      1020          1.38
 argon2          (4)      33.7          0.045
-m7m             (4)      48.7          0.066
 groestl         (4)       931          1.26 
 skein           (4)      5747          7.77
 skein2          (4)      8675         11.7

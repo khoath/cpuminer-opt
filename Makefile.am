@@ -102,7 +102,7 @@ cpuminer_SOURCES = \
   algo/lyra2/lyra2rev2.c \
   algo/lyra2/lyra2re.c \
   algo/keccak/sse2/keccak.c \
-  algo/m7m.c \
+  algo/m7mhash.c \
   algo/neoscrypt.c \
   algo/nist5.c \
   algo/pluck.c \
@@ -131,9 +131,6 @@ cpuminer_SOURCES = \
   algo/yescrypt/sha256_Y.c\
   algo/yescrypt/yescrypt-simd.c\
   algo/zr5.c
-
-
-
 
 
 disable_flags =
