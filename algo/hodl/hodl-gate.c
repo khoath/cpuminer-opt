@@ -2,7 +2,8 @@
 #include <stdlib.h>
 
 #include "miner.h"
-#include "algo-gate-api.h"
+//#include "algo-gate-api.h"
+#include "hodl-gate.h"
 #include "hodl.h"
 #include "hodl-wolf.h"
 
@@ -10,35 +11,17 @@ static struct work hodl_work;
 
 pthread_barrier_t hodl_barrier;
 
-// other algos that use a scratchbuf allocate one per miner thread
-// and define it locally.
-// Hodl only needs one scratchbuf total but the allocation is done in the
-// miner thread, so use a flag.
-// All miner threads must point to the same buffer. To do this save a copy
-// of the allocated buffer pointer to use instead of malloc.
-
+// All references to this buffer are local to this file, so no args
+// need to be passed.
 unsigned char *hodl_scratchbuf = NULL;
-bool hodl_scratchbuf_allocated = false;
-
-// get scratchbuf pointer, alloc buf if not yet done
-bool hodl_alloc_scratchbuf( unsigned char** scratchbuf )
-{
-  if ( !hodl_scratchbuf_allocated )
-  {
-      hodl_scratchbuf = (unsigned char*)malloc( 1 << 30 );
-      hodl_scratchbuf_allocated = ( hodl_scratchbuf != NULL );
-  }
-  *scratchbuf = hodl_scratchbuf;
-  return ( *scratchbuf != NULL );
-}
 
 void hodl_set_target( struct work* work, double diff )
 {
      diff_to_target(work->target, diff / 8388608.0 );
 }
 
-char *hodl_le_build_stratum_request( char* req, struct work* work,
-                                     struct stratum_ctx *sctx ) 
+void hodl_le_build_stratum_request( char* req, struct work* work,
+                                    struct stratum_ctx *sctx ) 
 {
    const int ntime_i      = 17;
    const int nstartloc_i  = 20;
@@ -107,18 +90,18 @@ bool hodl_do_this_thread( int thr_id )
 // Non AES hodl fails to compile in mingw so is disabled on Windows.
 
 int hodl_scanhash( int thr_id, struct work* work, uint32_t max_nonce,
-                   uint64_t *hashes_done, unsigned char *scratchbuf )
+                   uint64_t *hashes_done )
 {
 #ifdef NO_AES_NI
 #if (!(defined(_WIN64) || defined(__WINDOWS__)))
-  GetPsuedoRandomData( scratchbuf, work->data, thr_id );
+  GetPsuedoRandomData( hodl_scratchbuf, work->data, thr_id );
   pthread_barrier_wait( &hodl_barrier );
-  return scanhash_hodl( thr_id, work, max_nonce, hashes_done, scratchbuf );
+  return scanhash_hodl( thr_id, work, max_nonce, hashes_done );
 #endif
 #else
-  GenRandomGarbage( scratchbuf, work->data, thr_id );
+  GenRandomGarbage( hodl_scratchbuf, work->data, thr_id );
   pthread_barrier_wait( &hodl_barrier );
-  return scanhash_hodl_wolf( thr_id, work, max_nonce, hashes_done, scratchbuf );
+  return scanhash_hodl_wolf( thr_id, work, max_nonce, hashes_done );
 #endif
 }
 
@@ -133,12 +116,12 @@ bool register_hodl_algo( algo_gate_t* gate )
   gate->scanhash              = (void*)&hodl_scanhash;
   gate->init_nonce            = (void*)&hodl_init_nonce;
   gate->set_target            = (void*)&hodl_set_target;
-  gate->alloc_scratchbuf      = (void*)&hodl_alloc_scratchbuf;
   gate->build_stratum_request = (void*)&hodl_le_build_stratum_request;
   gate->build_extraheader     = (void*)&hodl_build_extraheader;
   gate->resync_threads        = (void*)&hodl_resync_threads;
   gate->do_this_thread        = (void*)&hodl_do_this_thread;
-  return true;
+  hodl_scratchbuf = (unsigned char*)malloc( 1 << 30 );
+  return ( hodl_scratchbuf != NULL );
 #endif
 }
 

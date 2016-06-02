@@ -1,5 +1,5 @@
 #include "miner.h"
-//#include "algo-gate-api.h"
+#include "hodl-gate.h"
 
 #if (!(defined(_WIN64) || defined(__WINDOWS__)))
 
@@ -8,7 +8,6 @@
 #include "block.h"
 #include <sstream>
 #include "tinyformat.h"
-//#include <boost/thread.hpp>
 #include <unordered_map>
 #include "hash.h"
 #include <openssl/aes.h>
@@ -42,8 +41,9 @@ void SHA512Filler(char *mainMemoryPsuedoRandomData, int threadNumber, uint256 mi
 extern "C"
 // max_nonce is not used by this function
 int scanhash_hodl( int threadNumber, struct work* work, uint32_t max_nonce,
-            uint64_t *hashes_done, unsigned char *mainMemoryPsuedoRandomData )
+                   uint64_t *hashes_done )
 {
+    unsigned char *mainMemoryPsuedoRandomData = hodl_scratchbuf;
     uint32_t *pdata = work->data;
     uint32_t *ptarget = work->target;
 

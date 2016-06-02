@@ -1,4 +1,4 @@
-Release 3.3.2 of cpuminer-opt is available for download with support for
+Release 3.3.3 of cpuminer-opt is available for download with support for
 Windows.
 
 
@@ -13,7 +13,12 @@ CPUs with AES_NI for even greater performance, including the Intel
 Sandy Bridge (Core-i 2xxx) and AMD equivalent. See the performance
 comparison below.
 
-New in 3.3.2:
+New in v3.3.3:
+
+- Fixed another low diif problem with hodl that occurs at startup
+- minor change to build.sh
+
+New in v3.3.2
 
 - Fixed low difficulty shares mining hodl
 - Changed minimum CPU requirement for AES optimized mining, now requires

@@ -3,6 +3,7 @@
 #include <openssl/sha.h>
 #include <x86intrin.h>
 #include "wolf-aes.h"
+#include "hodl-gate.h"
 #include "hodl-wolf.h"
 #include "miner.h"
 
@@ -25,8 +26,9 @@ void Rev256(uint32_t *Dest, const uint32_t *Src)
 }
 
 int scanhash_hodl_wolf( int threadNumber, struct work* work, uint32_t max_nonce,
-                   uint64_t *hashes_done, CacheEntry *Garbage )
+                        uint64_t *hashes_done )
 {
+    CacheEntry *Garbage = (CacheEntry*)hodl_scratchbuf;
     uint32_t *pdata = work->data;
     uint32_t *ptarget = work->target;
 	uint32_t CollisionCount = 0;
