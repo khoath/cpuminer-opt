@@ -132,7 +132,7 @@ void processor_id ( int functionnumber, int output[4] )
 
 // http://en.wikipedia.org/wiki/CPUID
 #define OSXSAVE_Flag  (1 << 27)
-#define AVX1_Flag    ((1 << 28)|OSXSAVE_Flag)
+#define AVX1_Flag     (1 << 28)
 #define XOP_Flag      (1 << 11)
 #define FMA3_Flag    ((1 << 12)|AVX1_Flag|OSXSAVE_Flag)
 #define AES_Flag      (1 << 25)
