@@ -2595,6 +2595,8 @@ static void show_credits()
         printf("     Wolf0 and Jeff Garzik.\n\n");
 }
 
+#define INCOMPATIBLE_BUILD_WARNING CL_RED "Your CPU does not support extensions this binary expects to be present.\nThe miner will likely crash if you use AES-optimized algo.\n" CL_N
+
 bool check_cpu_capability ()
 {
      int cpu_id[4];
@@ -2605,6 +2607,7 @@ bool check_cpu_capability ()
      bool sw_has_aes   = false;
      bool cpu_has_sse2 = has_sse2();
      bool sw_has_sse2  = false;
+     bool sw_has_avx   = false;
      bool algo_has_aes = algo_gate.aes_ni_optimized;
      char* grn_yes     = CL_GRN "YES." CL_N;
      char* ylw_no      = CL_YLW "NO." CL_N;
@@ -2638,87 +2641,24 @@ bool check_cpu_capability ()
      #ifdef __SSE2__
        sw_has_sse2 = true;
      #endif
+     #ifdef __AVX__
+       sw_has_avx = true;
+     #endif
 
-    void printf_mine_with_aes()
-        { printf("Start mining with AES-AVX optimizations...\n\n"); }
-    void printf_mine_without_aes()
-        { printf("Starting mining without AES-AVX optimizations...\n\n"); }
-    void printf_bad_cpu()
-        { printf("%sUnsupported CPU architecture, requires SSE2 minimum.%s\n",red,CL_N); }
-    void printf_bad_build()
-        { printf("%sIncompatible SW build, rebuild with \"-march=native\"%s\n",red,CL_N); }
-    void printf_rebuild_for_faster()
-        { printf("CPU and algo support AES-AVX, but SW build does not.\n");
-          printf("Rebuild with \"-march=native\" for better performance.\n"); } 
+     printf("Checking compatibility of this cpuminer and CPU (%s)\n", CPUBrandString);
+     printf("   cpuminer expects SSE2:           %s\n", sw_has_sse2  ? grn_yes : ylw_no); // bad sign if no support for SSE2
+     printf("   cpuminer expects AES:            %s\n", sw_has_aes   ? grn_yes : "no"); // no is not an error
+     printf("   cpuminer expects AVX:            %s\n", sw_has_avx   ? grn_yes : "no"); // no is not an error
+     printf("   CPU supports SSE2:               %s\n", cpu_has_sse2 ? grn_yes : ylw_no); // bad sign if no support for SSE2
+     printf("   CPU supports AES:                %s\n", cpu_has_aes  ? grn_yes : "no"); // no is not an error
+     printf("   CPU supports AVX:                %s\n", cpu_has_avx  ? grn_yes : "no"); // no is not an error
+     printf("   requested algo supports AES+AVX: %s\n", algo_has_aes ? grn_yes : "no"); // no is not an error
 
-     printf("Checking CPU capatibility...\n");
-     printf( "        %s\n", CPUBrandString );
+     if (sw_has_sse2 && !cpu_has_sse2) printf(INCOMPATIBLE_BUILD_WARNING);
+     else if (sw_has_aes && !cpu_has_aes) printf(INCOMPATIBLE_BUILD_WARNING);
+     else if (sw_has_avx && !cpu_has_avx) printf(INCOMPATIBLE_BUILD_WARNING);
 
-     printf("   CPU arch supports AES-AVX...");
-     if ( cpu_has_aes && cpu_has_avx )
-     {
-        printf("%s\n", grn_yes );
-        printf("   SW built for AES-AVX........");
-        if ( sw_has_aes )
-        {
-            printf("%s\n", grn_yes);
-            printf("   Algo supports AES-AVX.......");
-            if ( algo_has_aes )
-            {
-               printf("%s\n", grn_yes);
-               printf_mine_with_aes();
-               return true;
-            }
-            else
-            {
-              printf("%s\n", ylw_no );
-              printf_mine_without_aes();
-              return true;
-            }
-         }
-         else  // !sw_has_aes
-         {
-            printf("%s\n", ylw_no );
-//            if ( algo_has_aes )
-//            {
-//               printf("   Algo supports AES-AVX.......");
-//               printf("%s\n", grn_yes);
-//               printf_rebuild_for_faster();
-//            }
-         printf_mine_without_aes();
-         return true;
-         }
-      }
-      else  // !cpu_has_aes
-      {
-         printf("%s\n", ylw_no );
-         // make sure CPU has at least SSE2
-         printf("   CPU arch supports SSE2.....");
-         if ( cpu_has_sse2 )
-         {
-            printf("%s\n", grn_yes );
-//            printf("   SW built for SSE2..........");
-//            if ( sw_has_aes )
-//            {
-//              printf("%s\n", ylw_no );
-//              printf_bad_build();
-//              return false;
-//            }
-//            else
-//            {
-                printf("%s\n", grn_yes );
-                printf_mine_without_aes();
-                return true;
-//            }
-         }            
-         else            
-         {
-            printf("%s\n", ylw_no );
-            printf_bad_cpu();
-            return false;
-         }
-      }
-// never get here
+     return 1;
 }
 
 void get_defconfig_path(char *out, size_t bufsize, char *argv0);
