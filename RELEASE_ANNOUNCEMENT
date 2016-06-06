@@ -1,31 +1,36 @@
-Release 3.3.4 of cpuminer-opt is available for download with support for
+Release 3.3.5 of cpuminer-opt is available for download with support for
 Windows.
 
 
 All users are encouraged to upgrade.
 
 cpuminer-opt now supports 38 algorithms on CPUs with at least SSE2
-capabilities including Intel Core2 and AMD equivalent. See the
+capabilities including Intel Core2, Nehalem and AMD equivalent. See the
 performance chart below for details.
 
 In addition 19 algorithms have optimizations to take advantage of
 CPUs with AES_NI for even greater performance, including the Intel
-Sandy Bridge (Core-i 2xxx) and AMD equivalent. See the performance
+Westbridge and newer and AMD equivalent. See the performance
 comparison below.
 
-New in v3.3.4:
+New in v3.3.5:
 
-- Removed check for incompatible SW build because it didn't work
-  for users of westmere CPUs.
-- m7m algo AES optimized +75%, SSE2 +59%
+- Hodl on Windows with non-AES CPU is fixed, see README.md for new
+  Windows build instructions.
+
+- Rewrote CPU capabilities check to provide more information while
+  being less verbose. Implemented in permissive mode, ie mining will
+  allways be attempted regardless of incompatibilities. Miner may crash
+  or perform at less than optimum.
 
 Other recent changes:
 
 - Windows support added for all algos except hodl without AES-AVX1.
 - New algo x11evo (Revolver coin) added with AES-AVX1 optimizated +109%
    and SSE2 +42% more hash than the current cpu miner.
-- lyra2v2 algo SSE2 optimized +106%.
 - new algo hmq1725 (espers) AES_NI optimized +56% and SSE2 optimized +17%
+- m7m algo AES optimized +75%, SSE2 +59%
+- lyra2v2 algo SSE2 optimized +106%.
  
 Users with non-SSE2 CPUs or who want to mine algos not supported by
 cpuminer-opt may find cpuminer-multi by TPruvot useful.

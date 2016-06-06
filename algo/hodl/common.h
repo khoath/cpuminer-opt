@@ -2,13 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if (!(defined(_WIN64) || defined(__WINDOWS__)))
-
 #ifndef BITCOIN_CRYPTO_COMMON_H
 #define BITCOIN_CRYPTO_COMMON_H
 
 #if defined(HAVE_CONFIG_H)
 #include "bitcoin-config.h"
+#endif
+
+#if ((defined(_WIN64) || defined(__WINDOWS__)))
+#include "hodl-endian.h"
 #endif
 
 #include <stdint.h>
@@ -65,4 +67,4 @@ void static inline WriteBE64(unsigned char* ptr, uint64_t x)
 
 #endif // BITCOIN_CRYPTO_COMMON_H
 
-#endif
+//#endif
