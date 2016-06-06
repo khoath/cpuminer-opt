@@ -18,23 +18,36 @@ are some of the ones that may not be in the default install and need to
 be installed manually. There may be others, read the error messages they
 will give a clue as to the missing package.
 
+The folliwing command should install everything you need on Debian based
+packages:
+
+sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev libjansson-dev libgmp-dev automake
+
+Building on Linux, see below for Windows.
+
 Dependencies
 
-Linux
-
-libcurl
-jansson
-ssl
-libgmp
+build-essential  (for Ubuntu, Development Tools package group on Fedora)
+automake
+libjansson-dev
+libgmp-dev
+libcurl4-openssl-dev
+libssl-dev
 pthreads
 zlib
-libboost  (no longer required)
-gmp
 
 tar xvzf [file.tar.gz]
 cd [file]
 
-Continue with common procedure.
+Run build.sh to build on Linux or execute the following commands.
+
+./autogen.sh
+CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-curl
+make
+
+Start mining.
+
+./cpuminer -a algo ...
 
 Building on Windows prerequisites:
 
@@ -49,24 +62,28 @@ Install mingw__w64 from win-builds.
 Follow instructions, check "msys or cygwin" and "x86_64" and accept default
 existing msys instalation.
 
-Installing msys and mingw_w64 on Windows:
+Install msys and mingw_w64 on Windows:
 
-Open a msys shell by double clickin on msys.bat.
+Open a msys shell by double clicking on msys.bat.
 Note that msys shell uses linux syntax for file specifications, "C:\" is
 mounted at "/c/".
 
 Add mingw bin directory to PATH variable
 PATH="/c/mingw/opt/windows_64/bin/$PATH"
 
-Unpack source files using tar from msys shell, or using 7zip or similar Windows
-program.
+Unpack cpuminer-opt source files using tar from msys shell, or using 7zip
+or similar Windows program.
 
 In msys shell cd to miner directory.
 cd /c/path/to/cpuminer-opt
 
-Common procedure:
+Run winbuild.sh to build on Windows or execute the following commands.
 
-build.sh and mingw64.sh are not supported for Windows at this time.
+./autogen.sh
+CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11 -fpermissive" ./configure --with-curl
+make
+
+Common procedure:
 
 ./build.sh should now work for most users. If not some tips follow.
 
@@ -85,9 +102,6 @@ specifying "-march=btver1" on the configure command line.
 
 Support for even older x86_64 without AES_NI or SSE2 is not availble.
 cpuminer-multi by TPruvot supports this architecture.
-
-Windows is not supported at this time. However cpuminer-opt will run
-in a virtual machine such as Virtualbox at the same level of performance.
 
 The rest of this file is taken from cpuminer-multi.
 

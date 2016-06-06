@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if (!(defined(_WIN64) || defined(__WINDOWS__)))
+//#if (!(defined(_WIN64) || defined(__WINDOWS__)))
 #include "hash.h"
 #include "common.h"
 #include "hmac_sha512.h"
@@ -82,4 +82,4 @@ void BIP32Hash(const ChainCode &chainCode, unsigned int nChild, unsigned char he
     CHMAC_SHA512(chainCode.begin(), chainCode.size()).Write(&header, 1).Write(data, 32).Write(num, 4).Finalize(output);
 }
 
-#endif
+//#endif

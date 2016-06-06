@@ -1,7 +1,7 @@
 #include "miner.h"
 #include "hodl-gate.h"
 
-#if (!(defined(_WIN64) || defined(__WINDOWS__)))
+//#if (!(defined(_WIN64) || defined(__WINDOWS__)))
 
 #include "hodl_uint256.h"
 #include "hodl_arith_uint256.h"
@@ -171,4 +171,4 @@ void GetPsuedoRandomData( char* mainMemoryPsuedoRandomData, uint32_t *pdata,
     SHA512Filler( mainMemoryPsuedoRandomData, thr_id, midHash);
   }
 
-#endif
+//#endif

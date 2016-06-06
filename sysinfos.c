@@ -132,9 +132,10 @@ void processor_id ( int functionnumber, int output[4] )
 
 // http://en.wikipedia.org/wiki/CPUID
 #define OSXSAVE_Flag  (1 << 27)
-#define AVX1_Flag    ((1 << 28)|OSXSAVE_Flag)
+//#define AVX1_Flag    ((1 << 28)|OSXSAVE_Flag)
+#define AVX1_Flag     (1 << 28)
 #define XOP_Flag      (1 << 11)
-#define FMA3_Flag    ((1 << 12)|AVX1_Flag|OSXSAVE_Flag)
+#define FMA3_Flag     (1 << 12)
 #define AES_Flag      (1 << 25)
 #define SSE42_Flag    (1 << 20)
 
@@ -143,6 +144,7 @@ void processor_id ( int functionnumber, int output[4] )
 
 #define AVX2_Flag     (1 << 5) // ADV EBX
 
+// nehalem and above, no AVX1 on nehalem
 bool has_aes_ni()
 {
 #ifdef __arm__
@@ -154,7 +156,8 @@ bool has_aes_ni()
 #endif
 }
 
-bool has_avx()
+// westmere and above
+bool has_avx1()
 {
 #ifdef __arm__
         return false;
@@ -165,6 +168,16 @@ bool has_avx()
 #endif
 }
 
+bool has_sse2()
+{
+#ifdef __arm__
+    return false;
+#else
+    int cpu_info[4] = { 0 };
+    cpuid(1, cpu_info);
+    return cpu_info[3] & SSE2_Flag;
+#endif
+}
 
 void bestcpu_feature(char *outbuf, int maxsz)
 {
@@ -193,18 +206,5 @@ void bestcpu_feature(char *outbuf, int maxsz)
 		*outbuf = '\0';
 #endif
 }
-
-bool has_sse2()
-{
-#ifdef __arm__
-    return false;
-#else
-    int cpu_info[4] = { 0 };
-    cpuid(1, cpu_info);
-    return cpu_info[3] & SSE2_Flag;
-#endif
-}
-
-
 
 

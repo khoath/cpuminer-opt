@@ -3,7 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#if (!(defined(_WIN64) || defined(__WINDOWS__)))
+//#if (!(defined(_WIN64) || defined(__WINDOWS__)))
 
 #include "utilstrencodings.h"
 
@@ -500,4 +500,4 @@ int atoi(const std::string& str)
     return atoi(str.c_str());
 }
 
-#endif
+//#endif

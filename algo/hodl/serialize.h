@@ -7,6 +7,9 @@
 #define BITCOIN_SERIALIZE_H
 
 //#include "endian.h"
+#if ((defined(_WIN64) || defined(__WINDOWS__)))
+#include "hodl-endian.h"
+#endif
 
 #include <algorithm>
 #include <assert.h>
