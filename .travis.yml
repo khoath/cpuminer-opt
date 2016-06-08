@@ -23,4 +23,3 @@ before_script:
 script:
   - CFLAGS="-O3 -maes -mssse3 -msse4.1 -mtune=intel -DUSE_ASM" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-crypto --with-curl || cat config.log
   - make
-
