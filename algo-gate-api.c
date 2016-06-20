@@ -374,7 +374,9 @@ const char* const algo_alias_map[][2] =
 //   alias                proper
   { "blake256r8",        "blakecoin"   },
   { "blake256r8vnl",     "vanilla"     },
-  { "blake256r14",       "decred"      },
+// blake257r14 is not decred so what is it?
+// Plain blake maybe?
+//  { "blake256r14",       "decred"      },
   { "cryptonight-light", "cryptolight" },
   { "dmd-gr",            "groestl"     },
   { "droplp",            "drop"        },

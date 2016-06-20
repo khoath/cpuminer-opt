@@ -56,13 +56,13 @@ mingw_w64
 Visual C++ redistributable 2008 X64
 openssl, not sure about this
 
+Install msys and mingw_w64, only needed once.
+
 Unpack msys into C:\msys or your preferred directory.
 
 Install mingw__w64 from win-builds.
 Follow instructions, check "msys or cygwin" and "x86_64" and accept default
 existing msys instalation.
-
-Install msys and mingw_w64 on Windows:
 
 Open a msys shell by double clicking on msys.bat.
 Note that msys shell uses linux syntax for file specifications, "C:\" is
@@ -70,6 +70,8 @@ mounted at "/c/".
 
 Add mingw bin directory to PATH variable
 PATH="/c/mingw/opt/windows_64/bin/$PATH"
+
+Instalation complete, compile cpuminer-opt
 
 Unpack cpuminer-opt source files using tar from msys shell, or using 7zip
 or similar Windows program.
@@ -83,17 +85,7 @@ Run winbuild.sh to build on Windows or execute the following commands.
 CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11 -fpermissive" ./configure --with-curl
 make
 
-Common procedure:
-
-./build.sh should now work for most users. If not some tips follow.
-
-The manual procedure is:
-
-./autogen.sh
-CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-curl
-make
-
-The following tips may be out of date as of v3.2.2.
+The following tips may be useful for older AMD CPUs.
 
 Some users with AMD CPUs without AES_NI have reported problems compiling
 with build.sh or "-march=native". Problems have included compile errors

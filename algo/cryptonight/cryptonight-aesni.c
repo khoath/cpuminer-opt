@@ -103,14 +103,11 @@ typedef struct
     oaes_ctx* aes_ctx;
 } cryptonight_ctx;
 
+static __thread cryptonight_ctx ctx;
+
 void cryptonight_hash_aes( void *restrict output, const void *input, int len )
 {
 #ifndef NO_AES_NI
-   cryptonight_ctx ctx;
-
-//    cn_context_holder ctx;
-//    memcpy( &ctx, &cn_ctx, sizeof(cn__ctx) );
-
     keccak( (const uint8_t*)input, 76, (char*)&ctx.state.hs.b, 200 );
     uint8_t ExpandedKey[256];
     size_t i, j;

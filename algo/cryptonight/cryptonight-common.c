@@ -14,12 +14,16 @@
 #include "crypto/c_skein.h"
 #include "cryptonight.h"
 
+/*
 #if defined __unix__ && (!defined __APPLE__)
 #include <sys/mman.h>
 #elif defined _WIN32
 #include <windows.h>
 #endif
+*/
 
+
+char* cn_ctx;
 
 void do_blake_hash(const void* input, size_t len, char* output) {
     blake256_hash((uint8_t*)output, input, len);

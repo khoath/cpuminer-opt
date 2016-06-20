@@ -87,6 +87,15 @@ enum {
 };
 //#endif
 
+static inline bool is_windows(void)
+{
+#ifdef WIN32
+	return true;
+#else
+	return false;
+#endif
+}
+ 
 #include "compat.h"
 
 #ifndef ARRAY_SIZE
@@ -291,8 +300,11 @@ void   work_set_target_ratio( struct work* work, uint32_t* hash );
 void   get_currentalgo( char* buf, int sz );
 bool   has_aes_ni( void );
 bool   has_avx1();
+bool   has_avx2();
 bool   has_sse2();
-void   bestcpu_feature( char *outbuf, int maxsz );
+void   cpu_bestcpu_feature( char *outbuf, size_t maxsz );
+void   cpu_getname(char *outbuf, size_t maxsz);
+void   cpu_getmodelid(char *outbuf, size_t maxsz);
 void   processor_id ( int functionnumber, int output[4] );
 
 
@@ -573,6 +585,9 @@ extern unsigned int opt_nfactor;
 extern bool opt_randomize;
 extern bool allow_mininginfo;
 extern time_t g_work_time;
+extern bool opt_stratum_stats;
+extern int num_cpus;
+extern int opt_priority;
 
 extern pthread_mutex_t rpc2_job_lock;
 extern pthread_mutex_t rpc2_login_lock;
