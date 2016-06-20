@@ -1,8 +1,5 @@
 #include "miner.h"
 #include "hodl-gate.h"
-
-//#if (!(defined(_WIN64) || defined(__WINDOWS__)))
-
 #include "hodl_uint256.h"
 #include "hodl_arith_uint256.h"
 #include "block.h"
@@ -167,8 +164,5 @@ void GetPsuedoRandomData( char* mainMemoryPsuedoRandomData, uint32_t *pdata,
     pblock.hashMerkleRoot= uint256S(m.str());
     pblock.nNonce=swab32(pdata[19]);
     uint256 midHash = Hash(BEGIN(pblock.nVersion), END(pblock.nNonce));
-//    SHA512Filler(mainMemoryPsuedoRandomData, thr_id, totalThreads, midHash);
     SHA512Filler( mainMemoryPsuedoRandomData, thr_id, midHash);
   }
-
-//#endif

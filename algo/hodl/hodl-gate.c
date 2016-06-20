@@ -87,17 +87,13 @@ bool hodl_do_this_thread( int thr_id )
   return ( thr_id == 0 );
 }
 
-// Non AES hodl fails to compile in mingw so is disabled on Windows.
-
 int hodl_scanhash( int thr_id, struct work* work, uint32_t max_nonce,
                    uint64_t *hashes_done )
 {
 #ifdef NO_AES_NI
-//#if (!(defined(_WIN64) || defined(__WINDOWS__)))
   GetPsuedoRandomData( hodl_scratchbuf, work->data, thr_id );
   pthread_barrier_wait( &hodl_barrier );
   return scanhash_hodl( thr_id, work, max_nonce, hashes_done );
-//#endif
 #else
   GenRandomGarbage( hodl_scratchbuf, work->data, thr_id );
   pthread_barrier_wait( &hodl_barrier );
@@ -107,10 +103,6 @@ int hodl_scanhash( int thr_id, struct work* work, uint32_t max_nonce,
 
 bool register_hodl_algo( algo_gate_t* gate )
 {
-//#if defined(NO_AES_NI) && (defined(_WIN64) || defined(__WINDOWS))
-//  algo_not_implemented();
-//  return false;
-//#else  
   pthread_barrier_init( &hodl_barrier, NULL, opt_n_threads );
   gate->aes_ni_optimized      = true;
   gate->scanhash              = (void*)&hodl_scanhash;
@@ -122,7 +114,6 @@ bool register_hodl_algo( algo_gate_t* gate )
   gate->do_this_thread        = (void*)&hodl_do_this_thread;
   hodl_scratchbuf = (unsigned char*)malloc( 1 << 30 );
   return ( hodl_scratchbuf != NULL );
-//#endif
 }
 
 

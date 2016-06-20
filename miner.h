@@ -87,19 +87,20 @@ enum {
 };
 //#endif
 
+static inline bool is_windows(void)
+{
+#ifdef WIN32
+	return true;
+#else
+	return false;
+#endif
+}
+ 
 #include "compat.h"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
-
-static inline bool is_windows(void) {
-#ifdef WIN32
-	return 1;
-#else
-	return 0;
-#endif
-}
 
 #if ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
 #define WANT_BUILTIN_BSWAP
@@ -299,12 +300,12 @@ void   work_set_target_ratio( struct work* work, uint32_t* hash );
 void   get_currentalgo( char* buf, int sz );
 bool   has_aes_ni( void );
 bool   has_avx1();
+bool   has_avx2();
 bool   has_sse2();
+void   cpu_bestcpu_feature( char *outbuf, size_t maxsz );
+void   cpu_getname(char *outbuf, size_t maxsz);
+void   cpu_getmodelid(char *outbuf, size_t maxsz);
 void   processor_id ( int functionnumber, int output[4] );
-
-void cpu_bestfeature(char *outbuf, size_t maxsz);
-void cpu_getname(char *outbuf, size_t maxsz);
-void cpu_getmodelid(char *outbuf, size_t maxsz);
 
 
 float cpu_temp( int core );
@@ -552,7 +553,6 @@ extern bool opt_showdiff;
 extern bool opt_extranonce;
 extern bool opt_quiet;
 extern bool opt_redirect;
-extern int opt_priority;
 extern int opt_timeout;
 extern bool want_longpoll;
 extern bool have_longpoll;
@@ -560,7 +560,6 @@ extern bool have_gbt;
 extern bool allow_getwork;
 extern bool want_stratum;
 extern bool have_stratum;
-extern bool opt_stratum_stats;
 extern char *opt_cert;
 extern char *opt_proxy;
 extern long opt_proxy_type;
@@ -572,7 +571,6 @@ extern int longpoll_thr_id;
 extern int stratum_thr_id;
 extern int api_thr_id;
 extern int opt_n_threads;
-extern int num_cpus;
 extern struct work_restart *work_restart;
 extern uint32_t opt_work_size;
 extern double *thr_hashrates;
@@ -587,6 +585,9 @@ extern unsigned int opt_nfactor;
 extern bool opt_randomize;
 extern bool allow_mininginfo;
 extern time_t g_work_time;
+extern bool opt_stratum_stats;
+extern int num_cpus;
+extern int opt_priority;
 
 extern pthread_mutex_t rpc2_job_lock;
 extern pthread_mutex_t rpc2_login_lock;

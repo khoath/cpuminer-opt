@@ -2008,6 +2008,7 @@ static bool stratum_get_algo(struct stratum_ctx *sctx, json_t *id, json_t *param
 	return ret;
 }
 
+
 static bool stratum_get_version(struct stratum_ctx *sctx, json_t *id)
 {
 	char *s;
@@ -2113,8 +2114,7 @@ bool stratum_handle_method(struct stratum_ctx *sctx, const char *s)
 		// optional to fill device benchmarks
 		ret = stratum_get_stats(sctx, id, params);
 		goto out;
-	}
-	if (!strcasecmp(method, "client.get_version")) {
+	}	if (!strcasecmp(method, "client.get_version")) {
 		ret = stratum_get_version(sctx, id);
 		goto out;
 	}
@@ -2128,7 +2128,6 @@ bool stratum_handle_method(struct stratum_ctx *sctx, const char *s)
 		if (opt_debug) applog(LOG_WARNING, "unknown stratum method %s!", method);
 		ret = stratum_unknown_method(sctx, id);
 	}
-
 out:
 	if (val)
 		json_decref(val);

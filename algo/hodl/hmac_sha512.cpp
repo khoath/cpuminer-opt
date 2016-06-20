@@ -2,10 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-//#if (!(defined(_WIN64) || defined(__WINDOWS__)))
-
 #include "hmac_sha512.h"
-
 #include <string.h>
 
 CHMAC_SHA512::CHMAC_SHA512(const unsigned char* key, size_t keylen)
@@ -34,5 +31,3 @@ void CHMAC_SHA512::Finalize(unsigned char hash[OUTPUT_SIZE])
     inner.Finalize(temp);
     outer.Write(temp, 64).Finalize(hash);
 }
-
-//#endif

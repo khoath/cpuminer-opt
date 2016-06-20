@@ -1,8 +1,5 @@
-Release 3.3.5 of cpuminer-opt is available for download with support for
+Release 3.3.6 of cpuminer-opt is available for download with support for
 Windows.
-
-
-All users are encouraged to upgrade.
 
 cpuminer-opt now supports 38 algorithms on CPUs with at least SSE2
 capabilities including Intel Core2, Nehalem and AMD equivalent. See the
@@ -13,15 +10,13 @@ CPUs with AES_NI for even greater performance, including the Intel
 Westbridge and newer and AMD equivalent. See the performance
 comparison below.
 
-New in v3.3.5:
+New in v3.3.6:
 
-- Hodl on Windows with non-AES CPU is fixed, see README.md for new
-  Windows build instructions.
+- Fixed cryptonight algo on Windows.
 
-- Rewrote CPU capabilities check to provide more information while
-  being less verbose. Implemented in permissive mode, ie mining will
-  allways be attempted regardless of incompatibilities. Miner may crash
-  or perform at less than optimum.
+- Fixed reporting of AVX support on CPUs.
+
+- Final tuning of CPU capabilities check.
 
 Other recent changes:
 
@@ -59,8 +54,6 @@ quark          1195       924          1.61
 qubit          1090       765          1.45
 nist5          2000      1592          3.37
 zr5             850       650          1.15    
-x11gost         540       404          0.73
-x11evo          575       387          0.78
 c11             733       475          0.99
 myr-gr         1572      1560          2.12
 hmq1725         214       161          0.29

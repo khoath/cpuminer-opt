@@ -134,6 +134,7 @@ uint32_t rpc2_target = 0;
 char *rpc2_job_id = NULL;
 double opt_diff_factor = 1.0;
 uint32_t zr5_pok = 0;
+bool opt_stratum_stats = true;
 
 uint32_t accepted_count = 0L;
 uint32_t rejected_count = 0L;
@@ -246,7 +247,7 @@ void proper_exit(int reason)
 
 uint32_t* get_stratum_job_ntime()
 {
-   return stratum.job.ntime;
+   return (uint32_t)stratum.job.ntime;
 }
 
 void work_free(struct work *w)
@@ -735,7 +736,7 @@ static int share_result( int result, struct work *work, const char *reason )
 	sres = (result ? "(yes!!!)" : "(nooooo)");
    scale_hash_for_display ( &hashcount, hc_units );
    scale_hash_for_display ( &hashrate, hr_units );
-   if ( hc_units )
+   if ( hc_units[0] )
       sprintf(hc, "%.2f", hashcount );
    else
       // no fractions of a hash
@@ -809,7 +810,7 @@ void jr2_build_stratum_request( char *req, struct work *work )
 
 bool jr2_submit_getwork_result( CURL *curl, struct work *work )
 {
-   json_t *val, *res, *reason;
+   json_t *val, *res;
    char req[JSON_BUF_LEN];
    char noncestr[9];
    uchar hash[32];
@@ -889,10 +890,10 @@ bool std_submit_getwork_result( CURL *curl, struct work *work )
 
 static bool submit_upstream_work( CURL *curl, struct work *work )
 {
-   json_t *val, *res, *reason;
+   json_t *val, *res;
    char req[JSON_BUF_LEN];
    int i;
-   bool rc = false;
+//   bool rc = false;
 
    /* pass if the previous hash is not the current previous hash */
    if ( !submit_old && memcmp( &work->data[1], &g_work.data[1], 32 ) )
@@ -914,14 +915,13 @@ static bool submit_upstream_work( CURL *curl, struct work *work )
    }
    if ( have_stratum )
    {
-       uint32_t ntime, nonce;
-       char ntimestr[9], noncestr[9];
        algo_gate.build_stratum_request( req, work, &stratum );
        if ( unlikely( !stratum_send_line( &stratum, req ) ) )
        {
           applog(LOG_ERR, "submit_upstream_work stratum_send_line failed");
-       return false;
+          return false;
        }
+       return true;
    }
    else if (work->txs)
    {
@@ -1677,7 +1677,7 @@ static void *miner_thread( void *userdata )
           {
              scale_hash_for_display( &hashcount, hc_units );
              scale_hash_for_display( &hashrate,  hr_units );
-             if ( hc_units )
+             if ( hc_units[0] )
                 sprintf( hc, "%.2f", hashcount );
              else // no fractions of a hash
                 sprintf( hc, "%.0f", hashcount );
@@ -1706,7 +1706,7 @@ static void *miner_thread( void *userdata )
              global_hashrate  = hashrate;
              scale_hash_for_display( &hashcount, hc_units );
              scale_hash_for_display( &hashrate,  hr_units );
-             if ( hc_units )
+             if ( hc_units[0] )
                 sprintf( hc, "%.2f", hashcount );
              else  // no fractions of a hash
                 sprintf( hc, "%.0f", hashcount );
@@ -1808,7 +1808,6 @@ start:
 
    while (1)
    {
-      char *req = NULL;
       int err;
       json_t *val;
       val = (json_t*)algo_gate.longpoll_rpc_call( curl, &err, lp_url );
@@ -1918,7 +1917,6 @@ bool jr2_stratum_handle_response( json_t *val )
     json_t *err_val, *res_val, *id_val;
     res_val = json_object_get( val, "result" );
     err_val = json_object_get( val, "error" );
-    id_val  = json_object_get( val, "id" );
 
     if ( !res_val && !err_val )
         return false;
@@ -1936,7 +1934,7 @@ bool jr2_stratum_handle_response( json_t *val )
 
 static bool stratum_handle_response( char *buf )
 {
-	json_t *val, *err_val, *res_val, *id_val;
+	json_t *val, *res_val, *id_val;
 	json_error_t err;
 	bool ret = false;
 	bool valid = false;
@@ -1948,7 +1946,6 @@ static bool stratum_handle_response( char *buf )
 	   goto out;
 	}
 	res_val = json_object_get( val, "result" );
-	err_val = json_object_get( val, "error" );
 	id_val = json_object_get( val, "id" );
 	if ( !id_val || json_is_null(id_val) )
 		goto out;
@@ -2064,96 +2061,65 @@ out:
 	return NULL;
 }
 
-
-void show_version(void)
+void show_version_and_exit(void)
 {
-
-// CPU features
-	printf("CPU features:"
-//#if defined(USE_ASM) && defined(__i386__)
-//		" i386"
-//#endif
-//#if defined(USE_ASM) && defined(__x86_64__)
-//		" x86_64"
-//#endif
-#if defined(USE_ASM) && (defined(__i386__) || defined(__x86_64__))
-		" SSE2"
-#endif
-                    );
-        if ( has_aes_ni() )
-             printf(" AES");
-        printf(
-  #if defined(__x86_64__) && defined(USE_AVX)
-		" AVX"
-#endif
-#if defined(__x86_64__) && defined(USE_AVX2)
-		" AVX2"
-#endif
-//#if defined(__x86_64__) && defined(USE_XOP)
-//		" XOP"
-//#endif
-#if defined(USE_ASM) && defined(__arm__) && defined(__APCS_32__)
-		" ARM"
-#if defined(__ARM_ARCH_5E__) || defined(__ARM_ARCH_5TE__) || \
-	defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_6__) || \
-	defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || \
-	defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_6T2__) || \
-	defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__) || \
-	defined(__ARM_ARCH_7__) || \
-	defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || \
-	defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
-		" ARMv5E"
-#endif
-#if defined(__ARM_NEON__)
-		" NEON"
-#endif
-#endif
-		"\n");
-
-// SW build features
-        printf("SW built on " __DATE__
+        printf("\n built on " __DATE__
 #ifdef _MSC_VER
          " with VC++ 2013\n");
 #elif defined(__GNUC__)
          " with GCC");
         printf(" %d.%d.%d\n", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #endif
-        printf("Build features:"
 
-#if defined(__SSE2__)
+        printf(" features:"
+#if defined(USE_ASM) && defined(__i386__)
+                " i386"
+#endif
+#if defined(USE_ASM) && defined(__x86_64__)
+                " x86_64"
+#endif
+#if defined(USE_ASM) && (defined(__i386__) || defined(__x86_64__))
                 " SSE2"
 #endif
-#if defined(__AES__)
-                " AES"
-#endif
-#if defined(__AVX__)
+#if defined(__x86_64__) && defined(USE_AVX)
                 " AVX"
 #endif
-#if defined(__AVX2__)
+#if defined(__x86_64__) && defined(USE_AVX2)
                 " AVX2"
 #endif
-//#if defined(__XOP__)
-//                " XOP"
-//#endif
-                "\n");
+#if defined(__x86_64__) && defined(USE_XOP)
+                " XOP"
+#endif
+#if defined(USE_ASM) && defined(__arm__) && defined(__APCS_32__)
+                " ARM"
+#if defined(__ARM_ARCH_5E__) || defined(__ARM_ARCH_5TE__) || \
+        defined(__ARM_ARCH_5TEJ__) || defined(__ARM_ARCH_6__) || \
+        defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || \
+        defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_6T2__) || \
+        defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__) || \
+        defined(__ARM_ARCH_7__) || \
+        defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || \
+        defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
+                " ARMv5E"
+#endif
+#if defined(__ARM_NEON__)
+                " NEON"
+#endif
+#endif
+                "\n\n");
 
-/*
-	printf("%s\n", curl_version());
+        /* dependencies versions */
+        printf("%s\n", curl_version());
 #ifdef JANSSON_VERSION
-	printf("jansson/%s ", JANSSON_VERSION);
+        printf("jansson/%s ", JANSSON_VERSION);
 #endif
 #ifdef PTW32_VERSION
-	printf("pthreads/%d.%d.%d.%d ", PTW32_VERSION);
+        printf("pthreads/%d.%d.%d.%d ", PTW32_VERSION);
 #endif
-*/
+        printf("\n");
+        exit(0);
 }
 
-void show_version_and_exit(void)
-{
-        show_version();
-	printf("\n");
-	exit(0);
-}
 
 void show_usage_and_exit(int status)
 {
@@ -2630,16 +2596,18 @@ static void show_credits()
 
 bool check_cpu_capability ()
 {
-     int cpu_id[4];
-     unsigned int nExIds;
-     char CPUBrandString[0x40];
+     int cpu_info[4] = { 0 };
+     char cpu_brand[0x40];
+     bool cpu_has_sse2 = has_sse2();
      bool cpu_has_aes  = has_aes_ni();
      bool cpu_has_avx  = has_avx1();
-     bool sw_has_aes;
+     bool cpu_has_avx2 = has_avx2();
+     bool sw_has_sse2  = false;
+     bool sw_has_aes   = false;
+     bool sw_has_avx   = false;
+     bool sw_has_avx2  = false;
      bool algo_has_aes = algo_gate.aes_ni_optimized;
      bool use_aes;
-     bool cpu_has_sse2 = has_sse2();
-     bool sw_has_sse2;
      bool use_sse2;
      #ifdef __AES__
        sw_has_aes = true;
@@ -2647,29 +2615,44 @@ bool check_cpu_capability ()
      #ifdef __SSE2__
          sw_has_sse2 = true;
      #endif
+     #ifdef __AVX__
+         sw_has_avx = true;;
+     #endif
+     #ifdef __AVX2__
+         sw_has_avx2 = true;
+     #endif
+
      #if !((__AES__) || (__SSE2__))
          printf("Neither __AES__ nor __SSE2__ defined.\n");
      #endif
 
-     // Get the information associated with each extended ID.
-     processor_id( 0x80000000, cpu_id );
-     nExIds = cpu_id[0];
-     for ( unsigned j = 0x80000000; j <= nExIds; ++j )
-     {
-       processor_id( j, cpu_id );
-       // Interpret CPU brand string
-       if ( j == 0x80000002 )
-         memcpy( CPUBrandString, cpu_id, sizeof(cpu_id) );
-       else if ( j == 0x80000003)
-          memcpy( CPUBrandString + 16, cpu_id, sizeof(cpu_id) );
-       else if ( j == 0x80000004)
-          memcpy( CPUBrandString + 32, cpu_id, sizeof(cpu_id) );
-     }
+     cpu_brand_string( cpu_brand );
+     printf( "CPU: %s\n", cpu_brand );
+     
+     printf("CPU features:");
+     if ( cpu_has_sse2 ) printf( " SSE2" );
+     if ( cpu_has_aes  ) printf( " AES"  );
+     if ( cpu_has_avx  ) printf( " AVX"  );
+     if ( cpu_has_avx2 ) printf( " AVX2" );
 
-     printf( "Checking CPU capatibility...\n" );
-     printf( "%s\n", CPUBrandString );
-     show_version();
-     printf("Algo features: %s\n", algo_has_aes ? "SSE2 AES" : "SSE2" );
+     printf("\nSW built on " __DATE__
+     #ifdef _MSC_VER
+         " with VC++ 2013\n");
+     #elif defined(__GNUC__)
+         " with GCC");
+        printf(" %d.%d.%d\n", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+     #else
+        printf("\n");
+     #endif
+
+     printf("SW features:");
+     if ( sw_has_sse2 ) printf( " SSE2" );
+     if ( sw_has_aes  ) printf( " AES"  );
+     if ( sw_has_avx  ) printf( " AVX"  );
+     if ( sw_has_avx2 ) printf( " AVX2" );
+
+     // SSE2 defaults to yes regardless
+     printf("\nAlgo features: %s\n", algo_has_aes ? "SSE2 AES" : "SSE2" );
 
      use_aes = cpu_has_aes && cpu_has_avx && sw_has_aes && algo_has_aes;
      // don't use AES algo on non-AES CPU if compiled with AES.
