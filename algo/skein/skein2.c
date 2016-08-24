@@ -27,7 +27,7 @@ void skein2hash(void *output, const void *input)
 	sph_skein512(&ctx_skein, input, 80);
 	sph_skein512_close(&ctx_skein, hash);
 
-//	sph_skein512_init(&ctx_skein);
+	sph_skein512_init(&ctx_skein);
 	sph_skein512(&ctx_skein, hash, 64);
 	sph_skein512_close(&ctx_skein, hash);
 
@@ -46,10 +46,7 @@ int scanhash_skein2(int thr_id, struct work *work,
 	const uint32_t first_nonce = pdata[19];
 	uint32_t n = first_nonce;
 
-        for ( int i=0; i < 9; i++ )
-            be32enc_x2( (uint64_t*)( &((uint64_t*)endiandata)[i] ),
-                        (uint64_t) (  ((uint64_t*)pdata)[i]      ) );
-        be32enc( &endiandata[18], pdata[18] );
+        be32enc_array( endiandata, pdata, 19 );
 
 	do {
 		be32enc(&endiandata[19], n);

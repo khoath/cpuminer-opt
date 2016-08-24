@@ -110,12 +110,12 @@ void std_wait_for_diff()
      sleep(1);
 }
 
-uint32_t *std_get_nonceptr( uint32_t *work_data )
+uint32_t* std_get_nonceptr( uint32_t *work_data )
 {
    const int nonce_i = 19;
    return &work_data[ nonce_i ];
 }
-uint32_t *jr2_get_nonceptr( uint32_t *work_data )
+uint32_t* jr2_get_nonceptr( uint32_t *work_data )
 {
    // nonce is misaligned, use byte offset
    const int nonce_byte_i = 39;
@@ -289,6 +289,7 @@ bool register_algo_gate( int algo, algo_gate_t *gate )
      case ALGO_HMQ1725:     register_hmq1725_algo    ( gate ); break;
      case ALGO_HODL:        register_hodl_algo       ( gate ); break;
      case ALGO_KECCAK:      register_keccak_algo     ( gate ); break;
+     case ALGO_LBRY:        register_lbry_algo       ( gate ); break;
      case ALGO_LUFFA:       register_luffa_algo      ( gate ); break;
      case ALGO_LYRA2RE:     register_lyra2re_algo    ( gate ); break;
      case ALGO_LYRA2REV2:   register_lyra2rev2_algo  ( gate ); break;
@@ -308,6 +309,8 @@ bool register_algo_gate( int algo, algo_gate_t *gate )
      case ALGO_SKEIN2:      register_skein2_algo     ( gate ); break;
      case ALGO_S3:          register_s3_algo         ( gate ); break;
      case ALGO_VANILLA:     register_vanilla_algo    ( gate ); break;
+     case ALGO_WHIRLPOOL:   register_whirlpool_algo  ( gate ); break;
+     case ALGO_WHIRLPOOLX:  register_whirlpoolx_algo ( gate ); break;
      case ALGO_X11:         register_x11_algo        ( gate ); break;
      case ALGO_X11EVO:      register_x11evo_algo     ( gate ); break;
      case ALGO_X11GOST:     register_sib_algo        ( gate ); break;
@@ -352,11 +355,10 @@ bool register_json_rpc2( algo_gate_t *gate )
 // run the alternate hash function for a specific algo
 void exec_hash_function( int algo, void *output, const void *pdata )
 {
- int len = 0; // dummy arg
   algo_gate_t gate;   
   gate.hash = (void*)&null_hash;
   register_algo_gate( algo, &gate );
-  gate.hash( output, pdata, len );  
+  gate.hash( output, pdata, 0 );  
 }
 
 // an algo can have multiple aliases but the aliases must be unique

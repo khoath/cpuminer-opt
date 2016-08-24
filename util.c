@@ -154,6 +154,11 @@ void applog(int prio, const char *fmt, ...)
 	va_end(ap);
 }
 
+void log_sw_err( char* filename, int line_number, char* msg )
+{
+  applog( LOG_ERR, "SW_ERR: %s:%d, %s", filename, line_number, msg );
+}
+
 /* Get default config.json path (will be system specific) */
 void get_defconfig_path(char *out, size_t bufsize, char *argv0)
 {
@@ -1685,33 +1690,45 @@ static uint32_t getblocheight(struct stratum_ctx *sctx)
 
 static bool stratum_notify(struct stratum_ctx *sctx, json_t *params)
 {
-	const char *job_id, *prevhash, *coinb1, *coinb2, *version, *nbits, *ntime;
+	const char *job_id, *prevhash, *coinb1, *coinb2, *version, *nbits, *stime;
+        const char *claim = NULL, *nreward = NULL;
 	size_t coinb1_size, coinb2_size;
 	bool clean, ret = false;
-	int merkle_count, i;
+	int merkle_count, i, p = 0;
 	json_t *merkle_arr;
-	uchar **merkle;
-
-	job_id = json_string_value(json_array_get(params, 0));
-	prevhash = json_string_value(json_array_get(params, 1));
-	coinb1 = json_string_value(json_array_get(params, 2));
-	coinb2 = json_string_value(json_array_get(params, 3));
-	merkle_arr = json_array_get(params, 4);
+	uchar **merkle = NULL;
+        bool has_claim = opt_algo == ALGO_LBRY;
+        int ntime;
+	job_id = json_string_value(json_array_get(params, p++));
+	prevhash = json_string_value(json_array_get(params, p++));
+        if ( has_claim )
+        {
+                claim = json_string_value(json_array_get(params, p++));
+                if (!claim || strlen(claim) != 64) 
+                {
+                        applog(LOG_ERR, "Stratum notify: invalid claim parameter");
+                        goto out;
+                }
+        }
+	coinb1 = json_string_value(json_array_get(params, p++));
+	coinb2 = json_string_value(json_array_get(params, p++));
+	merkle_arr = json_array_get(params, p++);
 	if (!merkle_arr || !json_is_array(merkle_arr))
 		goto out;
 	merkle_count = (int) json_array_size(merkle_arr);
-	version = json_string_value(json_array_get(params, 5));
-	nbits = json_string_value(json_array_get(params, 6));
-	ntime = json_string_value(json_array_get(params, 7));
-	clean = json_is_true(json_array_get(params, 8));
+	version = json_string_value(json_array_get(params, p++));
+	nbits = json_string_value(json_array_get(params, p++));
+	stime = json_string_value(json_array_get(params, p++));
+	clean = json_is_true(json_array_get(params, p)); p++;
 
-	if (!job_id || !prevhash || !coinb1 || !coinb2 || !version || !nbits || !ntime ||
+	if (!job_id || !prevhash || !coinb1 || !coinb2 || !version || !nbits || !stime ||
 	    strlen(prevhash) != 64 || strlen(version) != 8 ||
-	    strlen(nbits) != 8 || strlen(ntime) != 8) {
+	    strlen(nbits) != 8 || strlen(stime) != 8) {
 		applog(LOG_ERR, "Stratum notify: invalid parameters");
 		goto out;
 	}
-	merkle = (uchar**) malloc(merkle_count * sizeof(char *));
+
+        merkle = (uchar**) malloc(merkle_count * sizeof(char *));
 	for (i = 0; i < merkle_count; i++) {
 		const char *s = json_string_value(json_array_get(merkle_arr, i));
 		if (!s || strlen(s) != 64) {
@@ -1738,22 +1755,23 @@ static bool stratum_notify(struct stratum_ctx *sctx, json_t *params)
 	if (!sctx->job.job_id || strcmp(sctx->job.job_id, job_id))
 		memset(sctx->job.xnonce2, 0, sctx->xnonce2_size);
 	hex2bin(sctx->job.xnonce2 + sctx->xnonce2_size, coinb2, coinb2_size);
-
 	free(sctx->job.job_id);
 	sctx->job.job_id = strdup(job_id);
 	hex2bin(sctx->job.prevhash, prevhash, 32);
+        if (has_claim) hex2bin(sctx->job.claim, claim, 32);
 
 	sctx->bloc_height = getblocheight(sctx);
 
 	for (i = 0; i < sctx->job.merkle_count; i++)
 		free(sctx->job.merkle[i]);
+
 	free(sctx->job.merkle);
 	sctx->job.merkle = merkle;
 	sctx->job.merkle_count = merkle_count;
 
 	hex2bin(sctx->job.version, version, 4);
 	hex2bin(sctx->job.nbits, nbits, 4);
-	hex2bin(sctx->job.ntime, ntime, 4);
+	hex2bin(sctx->job.ntime, stime, 4);
 	sctx->job.clean = clean;
 
 	sctx->job.diff = sctx->next_diff;
@@ -2114,7 +2132,8 @@ bool stratum_handle_method(struct stratum_ctx *sctx, const char *s)
 		// optional to fill device benchmarks
 		ret = stratum_get_stats(sctx, id, params);
 		goto out;
-	}	if (!strcasecmp(method, "client.get_version")) {
+	}
+	if (!strcasecmp(method, "client.get_version")) {
 		ret = stratum_get_version(sctx, id);
 		goto out;
 	}

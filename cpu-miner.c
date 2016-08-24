@@ -246,7 +246,7 @@ void proper_exit(int reason)
 
 uint32_t* get_stratum_job_ntime()
 {
-   return (uint32_t)stratum.job.ntime;
+   return (uint32_t*)stratum.job.ntime;
 }
 
 void work_free(struct work *w)
@@ -1339,7 +1339,7 @@ void std_stratum_gen_work( struct stratum_ctx *sctx, struct work *work,
    /* Increment extranonce2 */
    for ( t = 0; t < sctx->xnonce2_size && !( ++sctx->job.xnonce2[t] ); t++ );
    /* Assemble block header */
-   memset( work->data, 0, algo_gate.work_data_size );
+   memset( work->data, 0, sizeof(work->data) );
    work->data[0] = le32dec( sctx->job.version );
    for ( i = 0; i < 8; i++ )
       work->data[1 + i] = le32dec( (uint32_t *) sctx->job.prevhash + i );
@@ -1922,7 +1922,7 @@ bool std_stratum_handle_response( json_t *val )
 bool jr2_stratum_handle_response( json_t *val )
 {
     bool valid = false;
-    json_t *err_val, *res_val, *id_val;
+    json_t *err_val, *res_val;
     res_val = json_object_get( val, "result" );
     err_val = json_object_get( val, "error" );
 
@@ -1945,7 +1945,6 @@ static bool stratum_handle_response( char *buf )
 	json_t *val, *res_val, *id_val;
 	json_error_t err;
 	bool ret = false;
-	bool valid = false;
 
 	val = JSON_LOADS( buf, &err );
 	if (!val)
@@ -2604,7 +2603,6 @@ static void show_credits()
 
 bool check_cpu_capability ()
 {
-     int cpu_info[4] = { 0 };
      char cpu_brand[0x40];
      bool cpu_has_sse2 = has_sse2();
      bool cpu_has_aes  = has_aes_ni();

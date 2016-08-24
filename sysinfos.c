@@ -265,7 +265,7 @@ void cpu_getmodelid(char *outbuf, size_t maxsz)
 #define AVX1_mask     (AVX1_Flag|XSAVE_Flag|OSXSAVE_Flag)
 #define FMA3_mask     (FMA3_Flag|AVX1_mask)
 
-inline bool has_sse2_()
+static inline bool has_sse2_()
 {
 #ifdef __arm__
     return false;
@@ -279,7 +279,7 @@ inline bool has_sse2_()
 bool has_sse2() { return has_sse2_(); } 
 
 // nehalem and above, no AVX1 on nehalem
-inline bool has_aes_ni_()
+static inline bool has_aes_ni_()
 {
 #ifdef __arm__
 	return false;
@@ -293,7 +293,7 @@ inline bool has_aes_ni_()
 bool has_aes_ni() { return has_aes_ni_(); }
 
 // westmere and above
-inline bool has_avx1_()
+static inline bool has_avx1_()
 {
 #ifdef __arm__
         return false;
@@ -307,7 +307,7 @@ inline bool has_avx1_()
 bool has_avx1() { return has_avx1_(); }
 
 // haswell and above
-inline bool has_avx2_()
+static inline bool has_avx2_()
 {
 #ifdef __arm__
     return false;
@@ -320,7 +320,7 @@ inline bool has_avx2_()
 
 bool has_avx2() { return has_avx2_(); }
 
-inline bool has_xop_()
+static inline bool has_xop_()
 {
 #ifdef __arm__
         return false;
@@ -333,7 +333,7 @@ inline bool has_xop_()
 
 bool has_xop() { return has_xop_(); }
 
-inline bool has_fma3_()
+static inline bool has_fma3_()
 {
 #ifdef __arm__
         return false;
@@ -346,7 +346,7 @@ inline bool has_fma3_()
 
 bool has_fma3() { return has_fma3_(); }
 
-inline bool has_sse42_()
+static inline bool has_sse42_()
 {
 #ifdef __arm__
         return false;
@@ -359,7 +359,7 @@ inline bool has_sse42_()
 
 bool has_sse42() { return has_sse42_(); }
 
-inline bool has_sse_()
+static inline bool has_sse_()
 {
 #ifdef __arm__
         return false;
@@ -437,7 +437,6 @@ void cpu_brand_string( char* s )
         sprintf( s, "ARM" );
 #else
     int cpu_info[4] = { 0 };
-    int num_ext_ids;
     cpuid( VENDOR_ID, cpu_info );
     if ( cpu_info[ EAX_Reg ] >= 4 )
     {

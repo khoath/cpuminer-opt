@@ -1079,13 +1079,6 @@ int64_t get_neoscrypt_max64()
      return max64;
 }
 
-/*
-void neoscrypt_set_target( struct work* work, double job_diff ) 
-{
- work_set_target( work, job_diff / (65536.0 * opt_diff_factor) );
-}
-*/
-
 void neoscrypt_wait_for_diff( struct stratum_ctx *stratum )
 {
    while ( !stratum->job.diff )

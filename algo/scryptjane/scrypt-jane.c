@@ -147,8 +147,7 @@ int scanhash_scryptjane( int thr_id, struct work *work, uint32_t max_nonce,
 	if (opt_benchmark)
 		ptarget[7] = 0x00ff;
 
-	for (int k = 0; k < 20; k++)
-		be32enc(&endiandata[k], pdata[k]);
+        be32enc_array( &endiandata, pdata, 19 );
 
 	//Nfactor = GetNfactor(data[17], ntime);
 	//if (Nfactor > scrypt_maxN) {

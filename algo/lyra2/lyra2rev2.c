@@ -79,14 +79,9 @@ int scanhash_lyra2rev2(int thr_id, struct work *work,
 //	if (opt_benchmark)
 //		((uint32_t*)ptarget)[7] = 0x0000ff;
 
-        for ( int i=0; i < 9; i++ )
-            be32enc_x2( (uint64_t*)( &((uint64_t*)endiandata)[i] ),
-                        (uint64_t) (  ((uint64_t*)pdata)[i]      ) );
-        be32enc( &endiandata[18], pdata[18] );
+        be32enc_array( endiandata, pdata, 19 );
 
 	do {
-//		const uint32_t Htarg = ptarget[7];
-//		uint32_t hash[8];
 		be32enc(&endiandata[19], nonce);
 		lyra2rev2_hash(hash, endiandata);
 

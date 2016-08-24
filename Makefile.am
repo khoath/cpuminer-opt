@@ -96,6 +96,7 @@ cpuminer_SOURCES = \
   algo/hodl/utilstrencodings.cpp \
   algo/hodl/hodl-wolf.c \
   algo/hodl/aes.c \
+  algo/lbry.c \
   algo/luffa/luffa.c \
   algo/luffa/sse2/luffa_for_sse2.c \
   algo/lyra2/lyra2.c \
@@ -103,7 +104,7 @@ cpuminer_SOURCES = \
   algo/lyra2/lyra2rev2.c \
   algo/lyra2/lyra2re.c \
   algo/keccak/sse2/keccak.c \
-  algo/m7mhash.c \
+  algo/m7m.c \
   algo/neoscrypt.c \
   algo/nist5.c \
   algo/pluck.c \
@@ -119,6 +120,8 @@ cpuminer_SOURCES = \
   algo/skein/skein2.c \
   algo/s3.c \
   algo/tiger/sph_tiger.c \
+  algo/whirlpool/whirlpool.c \
+  algo/whirlpool/whirlpoolx.c \
   algo/x11/x11.c \
   algo/x11/x11evo.c \
   algo/x11/x11gost.c \

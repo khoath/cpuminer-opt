@@ -57,10 +57,7 @@ int scanhash_blake( int thr_id, struct work *work, uint32_t max_nonce,
 		HTarget = 0x7f;
 
 	// we need big endian data...
-        for ( int i=0; i < 9; i++ )
-            be32enc_x2( (uint64_t*)( &((uint64_t*)endiandata)[i] ),
-                        (uint64_t) (  ((uint64_t*)pdata)[i]      ) );
-        be32enc( &endiandata[18], pdata[18] );
+        be32enc_array( endiandata, pdata, 19 );
 
 #ifdef DEBUG_ALGO
 	applog(LOG_DEBUG,"[%d] Target=%08x %08x", thr_id, ptarget[6], ptarget[7]);

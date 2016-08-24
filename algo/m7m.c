@@ -416,8 +416,7 @@ out:
 
 void m7m_reverse_endian( struct work *work )
 {
-   for ( int i = 0; i < 32; i++ )
-      be32enc( &work->data[i], work->data[i] );
+   be32enc_array( work->data, work->data, 19 );
 }
 
 bool register_m7m_algo( algo_gate_t *gate )

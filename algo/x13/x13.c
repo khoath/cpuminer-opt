@@ -287,10 +287,7 @@ int scanhash_x13(int thr_id, struct work *work, uint32_t max_nonce,
 	};
 
 	// we need bigendian data...
-        for ( int i=0; i < 9; i++ )
-            be32enc_x2( (uint64_t*)( &((uint64_t*)endiandata)[i] ),
-                        (uint64_t) (  ((uint64_t*)pdata)[i]      ) );
-        be32enc( &endiandata[18], pdata[18] );
+        be32enc_array( endiandata, pdata, 19 );
 
 #ifdef DEBUG_ALGO
 	printf("[%d] Htarg=%X\n", thr_id, Htarg);

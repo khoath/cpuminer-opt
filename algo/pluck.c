@@ -457,8 +457,7 @@ int scanhash_pluck(int thr_id, struct work *work, uint32_t max_nonce,
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0ffff;
 
-	for (int k = 0; k < 19; k++)
-		be32enc(&endiandata[k], pdata[k]);
+        be32enc_array( endiandata, pdata, 19 );
 
 	const uint32_t Htarg = ptarget[7];
 	do {
