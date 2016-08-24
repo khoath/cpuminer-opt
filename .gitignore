@@ -28,7 +28,12 @@ config.sub
 
 mingw32-config.cache
 
-*/.dirstamp
+.dirstamp
+*.log
+*.bak
+*.new
+*.del
+*.del/
 
 *.iml
 
