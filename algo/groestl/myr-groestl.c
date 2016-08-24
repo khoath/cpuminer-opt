@@ -68,8 +68,10 @@ int scanhash_myriad(int thr_id, struct work *work,
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0000ff;
 
-	for (int k=0; k < 20; k++)
-		be32enc(&endiandata[k], ((uint32_t*)pdata)[k]);
+        for ( int i=0; i < 9; i++ )
+            be32enc_x2( (uint64_t*)( &((uint64_t*)endiandata)[i] ),
+                        (uint64_t) (  ((uint64_t*)pdata)[i]      ) );
+        be32enc( &endiandata[18], pdata[18] );
 
 	do {
 		const uint32_t Htarg = ptarget[7];

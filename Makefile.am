@@ -80,6 +80,7 @@ cpuminer_SOURCES = \
   algo/groestl/sse2/grso.c\
   algo/groestl/sse2/grso-asm.c\
   algo/groestl/aes_ni/hash-groestl.c \
+  algo/groestl/aes_ni/hash-groestl256.c \
   algo/haval/haval.c\
   algo/heavy/heavy.c \
   algo/heavy/bastion.c \

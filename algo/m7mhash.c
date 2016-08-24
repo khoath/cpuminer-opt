@@ -172,18 +172,18 @@ typedef struct {
 } m7m_ctx_holder;
 
 sph_sha256_context m7m_ctx_final_sha256;
-m7m_ctx_holder m7m_ctx1, m7m_ctx2;
+m7m_ctx_holder m7m_ctx;
 
 void init_m7m_ctx()
 {
     sph_sha256_init( &m7m_ctx_final_sha256 );
-    sph_sha256_init( &m7m_ctx1.sha256 );
-    sph_sha512_init( &m7m_ctx1.sha512 );
-    sph_keccak512_init( &m7m_ctx1.keccak );
-    sph_whirlpool_init( &m7m_ctx1.whirlpool );
-    sph_haval256_5_init( &m7m_ctx1.haval );
-    sph_tiger_init( &m7m_ctx1.tiger );
-    sph_ripemd160_init( &m7m_ctx1.ripemd );
+    sph_sha256_init( &m7m_ctx.sha256 );
+    sph_sha512_init( &m7m_ctx.sha512 );
+    sph_keccak512_init( &m7m_ctx.keccak );
+    sph_whirlpool_init( &m7m_ctx.whirlpool );
+    sph_haval256_5_init( &m7m_ctx.haval );
+    sph_tiger_init( &m7m_ctx.tiger );
+    sph_ripemd160_init( &m7m_ctx.ripemd );
 }
 
 #define BITS_PER_DIGIT 3.32192809488736234787
@@ -209,20 +209,20 @@ int scanhash_m7m_hash( int thr_id, struct work* work,
     int rc = 0;
     int bytes, nnNonce2;
 
-    m7m_ctx_holder ctx, ctx2;
-    memcpy( &ctx, &m7m_ctx1, sizeof(m7m_ctx1) );
+    m7m_ctx_holder ctx1, ctx2;
+    memcpy( &ctx1, &m7m_ctx, sizeof(m7m_ctx) );
     sph_sha256_context ctxf_sha256;
-    memcpy( &ctxf_sha256, &m7m_ctx_final_sha256, sizeof(sph_sha256_context) );
+    memcpy( &ctxf_sha256, &m7m_ctx_final_sha256, sizeof(ctxf_sha256) );
     
     memcpy(data, pdata, 80);
 
-    sph_sha256( &ctx.sha256, data, M7_MIDSTATE_LEN );
-    sph_sha512( &ctx.sha512, data, M7_MIDSTATE_LEN );
-    sph_keccak512( &ctx.keccak, data, M7_MIDSTATE_LEN );
-    sph_whirlpool( &ctx.whirlpool, data, M7_MIDSTATE_LEN );
-    sph_haval256_5( &ctx.haval, data, M7_MIDSTATE_LEN );
-    sph_tiger( &ctx.tiger, data, M7_MIDSTATE_LEN );
-    sph_ripemd160( &ctx.ripemd, data, M7_MIDSTATE_LEN );
+    sph_sha256( &ctx1.sha256, data, M7_MIDSTATE_LEN );
+    sph_sha512( &ctx1.sha512, data, M7_MIDSTATE_LEN );
+    sph_keccak512( &ctx1.keccak, data, M7_MIDSTATE_LEN );
+    sph_whirlpool( &ctx1.whirlpool, data, M7_MIDSTATE_LEN );
+    sph_haval256_5( &ctx1.haval, data, M7_MIDSTATE_LEN );
+    sph_tiger( &ctx1.tiger, data, M7_MIDSTATE_LEN );
+    sph_ripemd160( &ctx1.ripemd, data, M7_MIDSTATE_LEN );
 
     mpz_t magipi, magisw, product, bns[8];
     mpf_t magifpi, mpt1, mpt2, mptmp, mpten;
@@ -246,7 +246,7 @@ int scanhash_m7m_hash( int thr_id, struct work* work,
         nnNonce2 = (int)(data[19]/2);
         memset(bhash, 0, 7 * 64);
 
-        memcpy( &ctx2, &ctx, sizeof(m7m_ctx1) );
+        memcpy( &ctx2, &ctx1, sizeof(m7m_ctx) );
 
         sph_sha256( &ctx2.sha256, data_p64, 80 - M7_MIDSTATE_LEN );
         sph_sha256_close( &ctx2.sha256, (void*)(bhash[0]) );
@@ -282,13 +282,13 @@ int scanhash_m7m_hash( int thr_id, struct work* work,
 	        mpz_add(bns[7], bns[7], bns[i]);
 
         //mpz_set_ui(product,1);
-		mpz_set(product, bns[0]);
+	mpz_set(product, bns[0]);
 		
         for(int i=1; i < 8; i++)
             mpz_mul(product, product, bns[i]);
 		
         //mpz_pow_ui(product, product, 2); 
-		mpz_mul(product, product, product);
+	mpz_mul(product, product, product);
 		
         bytes = mpz_sizeinbase(product, 256);
         //bdata = (uint8_t *)realloc(bdata, bytes);
@@ -301,10 +301,10 @@ int scanhash_m7m_hash( int thr_id, struct work* work,
         int iterations=20;
         //mpf_set_default_prec((long int)(digits*BITS_PER_DIGIT+16));
         mp_bitcnt_t prec = (long int)(digits*BITS_PER_DIGIT+16);
-		mpf_set_prec_raw(magifpi, prec);
-		mpf_set_prec_raw(mptmp, prec);
-		mpf_set_prec_raw(mpt1, prec);
-		mpf_set_prec_raw(mpt2, prec);
+	mpf_set_prec_raw(magifpi, prec);
+	mpf_set_prec_raw(mptmp, prec);
+	mpf_set_prec_raw(mpt1, prec);
+	mpf_set_prec_raw(mpt2, prec);
 
         uint32_t usw_ = m7m_sw_(nnNonce2);
         //if (usw_ < 1) usw_ = 1;
@@ -312,8 +312,8 @@ int scanhash_m7m_hash( int thr_id, struct work* work,
         mpz_set_ui(magisw, usw_);
         //uint32_t mpzscale=mpz_size(magisw);
 		
-		uint32_t mpzscale = mpz_size(magisw);
-		mpzscale = (mpzscale == 0) ? 1 : ((mpzscale > 1000) ? 1000 : mpzscale);
+	uint32_t mpzscale = mpz_size(magisw);
+	mpzscale = (mpzscale == 0) ? 1 : ((mpzscale > 1000) ? 1000 : mpzscale);
 		
         for(int i = 0; i < 5; i++)
         {	
@@ -369,11 +369,8 @@ int scanhash_m7m_hash( int thr_id, struct work* work,
             //bdata = (uint8_t *)realloc(bdata, bytes);
             mpz_export(bdata, NULL, -1, 1, 0, 0, product);
 			
-            memcpy( &ctxf_sha256, &m7m_ctx_final_sha256,
-                    sizeof(sph_sha256_context) );
             sph_sha256( &ctxf_sha256, bdata, bytes );
             sph_sha256_close( &ctxf_sha256, (void*)(hash) );
-
 	}
 
         rc = fulltest_m7hash(hash, ptarget);
@@ -417,33 +414,11 @@ out:
     return rc;
 }
 
-bool m7m_work_decode( const json_t *val, struct work *work )
-{
-    int data_size   = algo_gate.work_data_size;
-    int target_size = sizeof(work->target);
-    int adata_sz    = ARRAY_SIZE(work->data);
-    int atarget_sz  = ARRAY_SIZE(work->target);
-
-    if ( unlikely(!jobj_binary( val, "data", work->data, data_size )) )
-    {
-        applog(LOG_ERR, "JSON invalid data");
-        return false;
-    }
-    if ( unlikely(!jobj_binary( val, "target", work->target, target_size )) )
-    {
-        applog(LOG_ERR, "JSON invalid target");
-        return false;
-    }
-    return true;
-}
-
 void m7m_reverse_endian( struct work *work )
 {
    for ( int i = 0; i < 32; i++ )
       be32enc( &work->data[i], work->data[i] );
 }
-
-// names seem reversed, m7mhash calls scanhash_m7m?
 
 bool register_m7m_algo( algo_gate_t *gate )
 {

@@ -71,18 +71,22 @@ int scanhash_lyra2rev2(int thr_id, struct work *work,
         uint32_t *pdata = work->data;
         uint32_t *ptarget = work->target;
 	uint32_t _ALIGN(64) endiandata[20];
+        uint32_t hash[8] __attribute__((aligned(32)));
 	const uint32_t first_nonce = pdata[19];
 	uint32_t nonce = first_nonce;
+        const uint32_t Htarg = ptarget[7];
 
-	if (opt_benchmark)
-		((uint32_t*)ptarget)[7] = 0x0000ff;
+//	if (opt_benchmark)
+//		((uint32_t*)ptarget)[7] = 0x0000ff;
 
-	for (int k=0; k < 20; k++)
-		be32enc(&endiandata[k], ((uint32_t*)pdata)[k]);
+        for ( int i=0; i < 9; i++ )
+            be32enc_x2( (uint64_t*)( &((uint64_t*)endiandata)[i] ),
+                        (uint64_t) (  ((uint64_t*)pdata)[i]      ) );
+        be32enc( &endiandata[18], pdata[18] );
 
 	do {
-		const uint32_t Htarg = ptarget[7];
-		uint32_t hash[8];
+//		const uint32_t Htarg = ptarget[7];
+//		uint32_t hash[8];
 		be32enc(&endiandata[19], nonce);
 		lyra2rev2_hash(hash, endiandata);
 
@@ -112,6 +116,7 @@ void lyra2rev2_set_target( struct work* work, double job_diff )
 bool register_lyra2rev2_algo( algo_gate_t* gate )
 {
   init_lyra2rev2_ctx();
+  gate->aes_ni_optimized = true;
   gate->scanhash   = (void*)&scanhash_lyra2rev2;
   gate->hash       = (void*)&lyra2rev2_hash;
   gate->hash_alt   = (void*)&lyra2rev2_hash;

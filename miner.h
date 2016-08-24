@@ -153,6 +153,17 @@ static inline void be32enc(void *pp, uint32_t x)
 }
 #endif
 
+// This is a poorman's SIMD instruction, the equivalent of
+//     be32enc( &dst[i], src[i] );
+//     be32enc( &dst[i+1], src[i+1] );
+static inline void be32enc_x2( uint64_t* dst, uint64_t src )
+{
+   *dst =   ( ( src & 0xff000000ff000000 ) >> 24 )
+          | ( ( src & 0x00ff000000ff0000 ) >>  8 )
+          | ( ( src & 0x0000ff000000ff00 ) <<  8 )
+          | ( ( src & 0x000000ff000000ff ) << 24 );
+}
+
 #if !HAVE_DECL_LE32ENC
 static inline void le32enc(void *pp, uint32_t x)
 {
@@ -302,11 +313,13 @@ bool   has_aes_ni( void );
 bool   has_avx1();
 bool   has_avx2();
 bool   has_sse2();
+bool   has_xop();
+bool   has_fma3();
+bool   has_sse42();
+bool   has_sse();
 void   cpu_bestcpu_feature( char *outbuf, size_t maxsz );
 void   cpu_getname(char *outbuf, size_t maxsz);
 void   cpu_getmodelid(char *outbuf, size_t maxsz);
-void   processor_id ( int functionnumber, int output[4] );
-
 
 float cpu_temp( int core );
 
@@ -613,9 +626,9 @@ Options:\n\
                           drop         Dropcoin\n\
                           fresh        Fresh\n\
                           groestl      groestl\n\
+                          heavy        Heavy\n\
                           hmq1725      Espers\n\
                           hodl         hodlcoin\n\
-                          heavy        Heavy\n\
                           keccak       Keccak\n\
                           luffa        Luffa\n\
                           lyra2re      lyra2\n\

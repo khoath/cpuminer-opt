@@ -88,16 +88,13 @@ void nist5hash(void *output, const void *input)
 int scanhash_nist5(int thr_id, struct work *work,
 				uint32_t max_nonce, uint64_t *hashes_done)
 {
+        uint32_t endiandata[20] __attribute__((aligned(64)));
+        uint32_t hash64[8] __attribute__((aligned(32)));
         uint32_t *pdata = work->data;
         uint32_t *ptarget = work->target;
-
 	uint32_t n = pdata[19] - 1;
 	const uint32_t first_nonce = pdata[19];
 	const uint32_t Htarg = ptarget[7];
-
-	uint32_t _ALIGN(32) hash64[8];
-	uint32_t endiandata[32];
-
 
 	uint64_t htmax[] = {
 		0,
@@ -117,9 +114,11 @@ int scanhash_nist5(int thr_id, struct work *work,
 	};
 
 	// we need bigendian data...
-	for (int kk=0; kk < 32; kk++) {
-		be32enc(&endiandata[kk], ((uint32_t*)pdata)[kk]);
-	};
+        for ( int i=0; i < 9; i++ )
+            be32enc_x2( (uint64_t*)( &((uint64_t*)endiandata)[i] ),
+                        (uint64_t) (  ((uint64_t*)pdata)[i]      ) );
+        be32enc( &endiandata[18], pdata[18] );
+
 #ifdef DEBUG_ALGO
 	printf("[%d] Htarg=%X\n", thr_id, Htarg);
 #endif

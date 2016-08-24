@@ -69,7 +69,7 @@ Note that msys shell uses linux syntax for file specifications, "C:\" is
 mounted at "/c/".
 
 Add mingw bin directory to PATH variable
-PATH="/c/mingw/opt/windows_64/bin/$PATH"
+PATH="/c/msys/opt/windows_64/bin/:$PATH"
 
 Instalation complete, compile cpuminer-opt
 

@@ -715,8 +715,11 @@ static int share_result( int result, struct work *work, const char *reason )
    const char *sres;
    double hashcount = 0.;
    double hashrate = 0.;
-   char hc_units[2] = {0,0};
-   char hr_units[2] = {0,0};
+   char hc_units[4] = {0};
+   char hr_units[4] = {0};
+   uint32_t total_submits;
+   float accepted_rate;
+   char accepted_rate_s[8] = {0};
    int i;
 
    pthread_mutex_lock(&stats_lock);
@@ -729,10 +732,17 @@ static int share_result( int result, struct work *work, const char *reason )
    pthread_mutex_unlock(&stats_lock);
    global_hashcount = hashcount;
    global_hashrate = hashrate;
+   total_submits = accepted_count + rejected_count;
+   accepted_rate = 100. * accepted_count / total_submits;
    if (use_colors)
 	sres = (result ? CL_GRN "yes!" : CL_RED "nooooo");
    else
 	sres = (result ? "(yes!!!)" : "(nooooo)");
+   if ( accepted_rate == 100.0 )
+      sprintf( accepted_rate_s, "%.0f", accepted_rate );
+   else
+      sprintf( accepted_rate_s, "%.1f", accepted_rate );
+
    scale_hash_for_display ( &hashcount, hc_units );
    scale_hash_for_display ( &hashrate, hr_units );
    if ( hc_units[0] )
@@ -741,9 +751,8 @@ static int share_result( int result, struct work *work, const char *reason )
       // no fractions of a hash
       sprintf(hc, "%.0f", hashcount );
    sprintf(hr, "%.2f", hashrate );
-   applog(LOG_NOTICE, "accepted: %lu/%lu (%.0f%%), %s %sH, %s %sH/s %s",
-              accepted_count, accepted_count + rejected_count,
-              100. * accepted_count / (accepted_count + rejected_count),
+   applog(LOG_NOTICE, "accepted: %lu/%lu (%s%%), %s %sH, %s %sH/s %s",
+              accepted_count, total_submits, accepted_rate_s,
               hc, hc_units, hr, hr_units, sres );
    if (reason)
    {

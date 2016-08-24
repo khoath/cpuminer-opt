@@ -8,6 +8,10 @@
 //#include "miner.h"
 #include "algo-gate-api.h"
 
+#ifndef NO_AES_NI
+  #include "algo/groestl/aes_ni/hash-groestl256.h"
+#endif
+
 #include "crypto/c_groestl.h"
 #include "crypto/c_blake256.h"
 #include "crypto/c_jh.h"
@@ -22,15 +26,19 @@
 #endif
 */
 
-
-char* cn_ctx;
-
 void do_blake_hash(const void* input, size_t len, char* output) {
     blake256_hash((uint8_t*)output, input, len);
 }
 
 void do_groestl_hash(const void* input, size_t len, char* output) {
+#ifdef NO_AES_NI
     groestl(input, len * 8, (uint8_t*)output);
+#else
+    hashState_groestl256 ctx;
+    init_groestl256( &ctx );
+    update_groestl256( &ctx, input, len * 8 );
+    final_groestl256( &ctx, output );
+#endif
 }
 
 void do_jh_hash(const void* input, size_t len, char* output) {
@@ -78,8 +86,8 @@ int scanhash_cryptonight( int thr_id, struct work *work, uint32_t max_nonce,
     do
     {
        *nonceptr = ++n;
-       cryptonight_hash(hash, pdata, 76 );
-       if (unlikely(hash[7] < ptarget[7]))
+       cryptonight_hash( hash, pdata, 76 );
+       if (unlikely( hash[7] < Htarg ))
        {
            *hashes_done = n - first_nonce + 1;
 	   return true;
