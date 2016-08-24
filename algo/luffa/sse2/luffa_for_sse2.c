@@ -34,19 +34,14 @@
     int _i = 8; while(_i--){x[_i] = BYTES_SWAP32(x[_i]);} \
 }
 
-#define MULT2(a0,a1,t0,t1)\
-    t0 = _mm_load_si128(&a1);\
-    t0 = _mm_and_si128(t0,MASK);\
-    t0 = _mm_shuffle_epi32(t0,16);\
-    a0 = _mm_xor_si128(a0,t0);\
-    t0 = _mm_load_si128(&a0);\
-    t1 = _mm_load_si128(&a1);\
-    a0 = _mm_srli_si128(a0,4);\
-    a1 = _mm_srli_si128(a1,4);\
-    t0 = _mm_slli_si128(t0,12);\
-    t1 = _mm_slli_si128(t1,12);\
-    a0 = _mm_or_si128(a0,t1);\
-    a1 = _mm_or_si128(a1,t0);
+#define MULT2(a0,a1) do \
+{ \
+  __m128i b; \
+  a0 = _mm_xor_si128( a0, _mm_shuffle_epi32( _mm_and_si128(a1,MASK), 16 ) ); \
+  b = a0; \
+  a0 = _mm_or_si128( _mm_srli_si128(a0,4), _mm_slli_si128(a1,12) ); \
+  a1 = _mm_or_si128( _mm_srli_si128(a1,4), _mm_slli_si128(b,12) );  \
+} while(0)
 
 #define STEP_PART(x,c,t)\
     SUBCRUMB(*x,*(x+1),*(x+2),*(x+3),*t);\
@@ -266,8 +261,6 @@ __m128i CNS128[32];
 __m128i ALLONE;
 __m128i MASK;
 
-
-
 HashReturn init_luffa(hashState_luffa *state, int hashbitlen)
 {
     int i;
@@ -280,14 +273,11 @@ HashReturn init_luffa(hashState_luffa *state, int hashbitlen)
     ALLONE = _mm_set_epi32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
 
     /* set the 32-bit round constant values to the 128-bit data field */
-    for (i=0;i<32;i++) {
-        CNS128[i] = _mm_loadu_si128((__m128i*)&CNS_INIT[i*4]);
-    }
+    for ( i=0; i<32; i++ )
+        CNS128[i] = _mm_loadu_si128( (__m128i*)&CNS_INIT[i*4] );
 
-
-	for (i=0;i<10;i++) 
-		state->chainv[i] = _mm_loadu_si128((__m128i*)&IV[i*4]);
-      
+    for ( i=0; i<10; i++ ) 
+	state->chainv[i] = _mm_loadu_si128( (__m128i*)&IV[i*4] );
 
     state->bitlen[0] = 0;
     state->bitlen[1] = 0;
@@ -303,16 +293,20 @@ HashReturn update_luffa(hashState_luffa *state, const BitSequence *data, DataLen
     HashReturn ret=SUCCESS;
     int i;
     uint8 *p = (uint8*)state->buffer;
-	for (i=0;i<8;i++) state->buffer[i] = BYTES_SWAP32(((uint32*)data)[i]);
-	rnd512(state); 
-	data += MSG_BLOCK_BYTE_LEN; 
-	state->rembitlen = 0;
-	for (i=0;i<8;i++) state->buffer[i] = BYTES_SWAP32(((uint32*)data)[i]);
-	rnd512(state); 
-	data += MSG_BLOCK_BYTE_LEN; 
-	memset(p+1, 0, 31*sizeof(uint8));
-	p[0] = 0x80;
-	for (i=0;i<8;i++) state->buffer[i] = BYTES_SWAP32(state->buffer[i]);
+
+    for ( i=0; i<8; i++ )
+       state->buffer[i] = BYTES_SWAP32( ((uint32*)data)[i] );
+    rnd512( state ); 
+    data += MSG_BLOCK_BYTE_LEN; 
+    state->rembitlen = 0;
+    for ( i=0; i<8; i++ )
+       state->buffer[i] = BYTES_SWAP32(((uint32*)data)[i]);
+    rnd512(state); 
+    data += MSG_BLOCK_BYTE_LEN; 
+    memset(p+1, 0, 31*sizeof(uint8));
+    p[0] = 0x80;
+    for ( i=0; i<8; i++ )
+       state->buffer[i] = BYTES_SWAP32(state->buffer[i]);
     rnd512(state);
     return ret;
 }
@@ -334,25 +328,15 @@ HashReturn final_luffa(hashState_luffa *state, BitSequence *hashval)
 static void rnd512(hashState_luffa *state)
 {
     __m128i t[2];
-    __m128i chainv[10];
+    __m128i *chainv = state->chainv;
     __m128i msg[2];
     __m128i tmp[2];
     __m128i x[8];
     int i;
 
-    chainv[0] = _mm_load_si128(&state->chainv[0]);
-    chainv[1] = _mm_load_si128(&state->chainv[1]);
-    chainv[2] = _mm_load_si128(&state->chainv[2]);
-    chainv[3] = _mm_load_si128(&state->chainv[3]);
-    chainv[4] = _mm_load_si128(&state->chainv[4]);
-    chainv[5] = _mm_load_si128(&state->chainv[5]);
-    chainv[6] = _mm_load_si128(&state->chainv[6]);
-    chainv[7] = _mm_load_si128(&state->chainv[7]);
-    chainv[8] = _mm_load_si128(&state->chainv[8]);
-    chainv[9] = _mm_load_si128(&state->chainv[9]);
+    t[0] = chainv[0];
+    t[1] = chainv[1];
 
-    t[0] = _mm_load_si128(&chainv[0]);
-    t[1] = _mm_load_si128(&chainv[1]);
     t[0] = _mm_xor_si128(t[0], chainv[2]);
     t[1] = _mm_xor_si128(t[1], chainv[3]);
     t[0] = _mm_xor_si128(t[0], chainv[4]);
@@ -362,110 +346,133 @@ static void rnd512(hashState_luffa *state)
     t[0] = _mm_xor_si128(t[0], chainv[8]);
     t[1] = _mm_xor_si128(t[1], chainv[9]);
 
-    MULT2(t[0],t[1],tmp[0],tmp[1]);
+    MULT2( t[0], t[1]);
 
-    msg[0] = _mm_loadu_si128 ((__m128i*)&state->buffer[0]);
-    msg[1] = _mm_loadu_si128 ((__m128i*)&state->buffer[4]);
-    msg[0] = _mm_shuffle_epi32(msg[0], 27);
-    msg[1] = _mm_shuffle_epi32(msg[1], 27);
+    msg[0] = _mm_loadu_si128 ( (__m128i*)&state->buffer[0] );
+    msg[1] = _mm_loadu_si128 ( (__m128i*)&state->buffer[4] );
+    msg[0] = _mm_shuffle_epi32( msg[0], 27 );
+    msg[1] = _mm_shuffle_epi32( msg[1], 27 );
 
-    for (i=0;i<5;i++){
-        chainv[i*2] = _mm_xor_si128(chainv[i*2], t[0]);
-        chainv[1+i*2] = _mm_xor_si128(chainv[1+i*2], t[1]);
-    }
+    chainv[0] = _mm_xor_si128( chainv[0], t[0] );
+    chainv[1] = _mm_xor_si128( chainv[1], t[1] );
+    chainv[2] = _mm_xor_si128( chainv[2], t[0] );
+    chainv[3] = _mm_xor_si128( chainv[3], t[1] );
+    chainv[4] = _mm_xor_si128( chainv[4], t[0] );
+    chainv[5] = _mm_xor_si128( chainv[5], t[1] );
+    chainv[6] = _mm_xor_si128( chainv[6], t[0] );
+    chainv[7] = _mm_xor_si128( chainv[7], t[1] );
+    chainv[8] = _mm_xor_si128( chainv[8], t[0] );
+    chainv[9] = _mm_xor_si128( chainv[9], t[1] );
 
-    t[0] = _mm_load_si128(&chainv[0]);
-    t[1] = _mm_load_si128(&chainv[1]);
+    t[0] = chainv[0];
+    t[1] = chainv[1];
 
-    MULT2(chainv[0],chainv[1],tmp[0],tmp[1]);
-    chainv[0] = _mm_xor_si128(chainv[0], chainv[2]);
-    chainv[1] = _mm_xor_si128(chainv[1], chainv[3]);
+    MULT2( chainv[0], chainv[1]);
 
-    MULT2(chainv[2],chainv[3],tmp[0],tmp[1]);
+    chainv[0] = _mm_xor_si128( chainv[0], chainv[2] );
+    chainv[1] = _mm_xor_si128( chainv[1], chainv[3] );
+
+    MULT2( chainv[2], chainv[3]);
+
     chainv[2] = _mm_xor_si128(chainv[2], chainv[4]);
     chainv[3] = _mm_xor_si128(chainv[3], chainv[5]);
 
-    MULT2(chainv[4],chainv[5],tmp[0],tmp[1]);
+    MULT2( chainv[4], chainv[5]);
+
     chainv[4] = _mm_xor_si128(chainv[4], chainv[6]);
     chainv[5] = _mm_xor_si128(chainv[5], chainv[7]);
 
-    MULT2(chainv[6],chainv[7],tmp[0],tmp[1]);
+    MULT2( chainv[6], chainv[7]);
+
     chainv[6] = _mm_xor_si128(chainv[6], chainv[8]);
     chainv[7] = _mm_xor_si128(chainv[7], chainv[9]);
 
-    MULT2(chainv[8],chainv[9],tmp[0],tmp[1]);
-    chainv[8] = _mm_xor_si128(chainv[8], t[0]);
-    chainv[9] = _mm_xor_si128(chainv[9], t[1]);
+    MULT2( chainv[8], chainv[9]);
 
-    t[0] = _mm_load_si128(&chainv[8]);
-    t[1] = _mm_load_si128(&chainv[9]);
+    chainv[8] = _mm_xor_si128( chainv[8], t[0] );
+    chainv[9] = _mm_xor_si128( chainv[9], t[1] );
 
-    MULT2(chainv[8],chainv[9],tmp[0],tmp[1]);
-    chainv[8] = _mm_xor_si128(chainv[8], chainv[6]);
-    chainv[9] = _mm_xor_si128(chainv[9], chainv[7]);
+    t[0] = chainv[8];
+    t[1] = chainv[9];
 
-    MULT2(chainv[6],chainv[7],tmp[0],tmp[1]);
-    chainv[6] = _mm_xor_si128(chainv[6], chainv[4]);
-    chainv[7] = _mm_xor_si128(chainv[7], chainv[5]);
+    MULT2( chainv[8], chainv[9]);
 
-    MULT2(chainv[4],chainv[5],tmp[0],tmp[1]);
-    chainv[4] = _mm_xor_si128(chainv[4], chainv[2]);
-    chainv[5] = _mm_xor_si128(chainv[5], chainv[3]);
+    chainv[8] = _mm_xor_si128( chainv[8], chainv[6] );
+    chainv[9] = _mm_xor_si128( chainv[9], chainv[7] );
 
-    MULT2(chainv[2],chainv[3],tmp[0],tmp[1]);
-    chainv[2] = _mm_xor_si128(chainv[2], chainv[0]);
-    chainv[3] = _mm_xor_si128(chainv[3], chainv[1]);
+    MULT2( chainv[6], chainv[7]);
 
-    MULT2(chainv[0],chainv[1],tmp[0],tmp[1]);
-    chainv[0] = _mm_xor_si128(chainv[0], t[0]);
-    chainv[1] = _mm_xor_si128(chainv[1], t[1]);
+    chainv[6] = _mm_xor_si128( chainv[6], chainv[4] );
+    chainv[7] = _mm_xor_si128( chainv[7], chainv[5] );
 
-    for (i=0;i<5;i++){
-        chainv[i*2] = _mm_xor_si128(chainv[i*2], msg[0]);
-        chainv[1+i*2] = _mm_xor_si128(chainv[1+i*2], msg[1]);
+    MULT2( chainv[4], chainv[5]);
 
-        MULT2(msg[0],msg[1],tmp[0],tmp[1]);
+    chainv[4] = _mm_xor_si128( chainv[4], chainv[2] );
+    chainv[5] = _mm_xor_si128( chainv[5], chainv[3] );
+
+    MULT2( chainv[2], chainv[3] );
+
+    chainv[2] = _mm_xor_si128( chainv[2], chainv[0] );
+    chainv[3] = _mm_xor_si128( chainv[3], chainv[1] );
+
+    MULT2( chainv[0], chainv[1] );
+
+    chainv[0] = _mm_xor_si128( _mm_xor_si128( chainv[0], t[0] ), msg[0] );
+    chainv[1] = _mm_xor_si128( _mm_xor_si128( chainv[1], t[1] ), msg[1] );
+
+    MULT2( msg[0], msg[1]);
+
+    chainv[2] = _mm_xor_si128( chainv[2], msg[0] );
+    chainv[3] = _mm_xor_si128( chainv[3], msg[1] );
+
+    MULT2( msg[0], msg[1]);
+
+    chainv[4] = _mm_xor_si128( chainv[4], msg[0] );
+    chainv[5] = _mm_xor_si128( chainv[5], msg[1] );
+
+    MULT2( msg[0], msg[1]);
+
+    chainv[6] = _mm_xor_si128( chainv[6], msg[0] );
+    chainv[7] = _mm_xor_si128( chainv[7], msg[1] );
+
+    MULT2( msg[0], msg[1]);
+
+    chainv[8] = _mm_xor_si128( chainv[8], msg[0] );
+    chainv[9] = _mm_xor_si128( chainv[9], msg[1] );
+
+    MULT2( msg[0], msg[1]);
+
+    chainv[3] = _mm_or_si128( _mm_slli_epi32(chainv[3], 1),
+                              _mm_srli_epi32(chainv[3], 31) );
+    chainv[5] = _mm_or_si128( _mm_slli_epi32(chainv[5], 2),
+                              _mm_srli_epi32(chainv[5], 30) );
+    chainv[7] = _mm_or_si128( _mm_slli_epi32(chainv[7], 3),
+                              _mm_srli_epi32(chainv[7], 29) );
+    chainv[9] = _mm_or_si128( _mm_slli_epi32(chainv[9], 4),
+                              _mm_srli_epi32(chainv[9], 28) );
+
+
+    NMLTOM1024( chainv[0], chainv[2], chainv[4], chainv[6],
+                x[0], x[1], x[2], x[3],
+                chainv[1],chainv[3],chainv[5],chainv[7],
+                x[4], x[5], x[6], x[7] );
+
+    for ( i=0; i<8 ; i++ )
+    {
+        STEP_PART( &x[0], &CNS128[i*2], &tmp[0] );
     }
 
-    /* Tweak() */
-    t[0] = _mm_slli_epi32(chainv[3], 1); 
-    t[1] = _mm_srli_epi32(chainv[3], 31); 
-    chainv[3] = _mm_or_si128(t[0], t[1]);
-    t[0] = _mm_slli_epi32(chainv[5], 2); 
-    t[1] = _mm_srli_epi32(chainv[5], 30); 
-    chainv[5] = _mm_or_si128(t[0], t[1]);
-    t[0] = _mm_slli_epi32(chainv[7], 3); 
-    t[1] = _mm_srli_epi32(chainv[7], 29); 
-    chainv[7] = _mm_or_si128(t[0], t[1]);
-    t[0] = _mm_slli_epi32(chainv[9], 4); 
-    t[1] = _mm_srli_epi32(chainv[9], 28); 
-    chainv[9] = _mm_or_si128(t[0], t[1]);
-
-    NMLTOM1024(chainv[0],chainv[2],chainv[4],chainv[6], x[0],x[1],x[2],x[3],
-            chainv[1],chainv[3],chainv[5],chainv[7], x[4],x[5],x[6],x[7]);
-
-    for (i=0;i<8;i++) {
-        STEP_PART(&x[0],&CNS128[i*2],&tmp[0]);
-    }
-
-    MIXTON1024(x[0],x[1],x[2],x[3], chainv[0],chainv[2],chainv[4],chainv[6],
-            x[4],x[5],x[6],x[7], chainv[1],chainv[3],chainv[5],chainv[7]);
+    MIXTON1024( x[0], x[1], x[2], x[3],
+                chainv[0], chainv[2], chainv[4],chainv[6],
+                x[4], x[5], x[6], x[7],
+                chainv[1],chainv[3],chainv[5],chainv[7]);
 
     /* Process last 256-bit block */
-    for (i=0;i<8;i++) {
-        STEP_PART2(chainv[8],chainv[9],t[0],t[1],CNS128[16+2*i],CNS128[17+2*i],tmp[0],tmp[1]);
+    for ( i=0; i<8; i++ )
+    {
+        STEP_PART2( chainv[8], chainv[9], t[0], t[1], CNS128[16+2*i],
+                    CNS128[17+2*i], tmp[0], tmp[1] );
     }
-
-    state->chainv[0] = _mm_load_si128(&chainv[0]);
-    state->chainv[1] = _mm_load_si128(&chainv[1]);
-    state->chainv[2] = _mm_load_si128(&chainv[2]);
-    state->chainv[3] = _mm_load_si128(&chainv[3]);
-    state->chainv[4] = _mm_load_si128(&chainv[4]);
-    state->chainv[5] = _mm_load_si128(&chainv[5]);
-    state->chainv[6] = _mm_load_si128(&chainv[6]);
-    state->chainv[7] = _mm_load_si128(&chainv[7]);
-    state->chainv[8] = _mm_load_si128(&chainv[8]);
-    state->chainv[9] = _mm_load_si128(&chainv[9]);
 
     return;
 }
@@ -477,6 +484,7 @@ static void rnd512(hashState_luffa *state)
 
 static void finalization512(hashState_luffa *state, uint32 *b)
 {
+    __m128i* chainv = state->chainv;
     __m128i t[2];
     uint32 hash[8];
     int i;
@@ -485,16 +493,16 @@ static void finalization512(hashState_luffa *state, uint32 *b)
     memset(state->buffer, 0, sizeof state->buffer );
     rnd512(state);
 
-    t[0] = _mm_load_si128(&state->chainv[0]);
-    t[1] = _mm_load_si128(&state->chainv[1]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[2]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[3]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[4]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[5]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[6]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[7]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[8]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[9]);
+    t[0] = chainv[0];
+    t[1] = chainv[1];
+    t[0] = _mm_xor_si128(t[0], chainv[2]);
+    t[1] = _mm_xor_si128(t[1], chainv[3]);
+    t[0] = _mm_xor_si128(t[0], chainv[4]);
+    t[1] = _mm_xor_si128(t[1], chainv[5]);
+    t[0] = _mm_xor_si128(t[0], chainv[6]);
+    t[1] = _mm_xor_si128(t[1], chainv[7]);
+    t[0] = _mm_xor_si128(t[0], chainv[8]);
+    t[1] = _mm_xor_si128(t[1], chainv[9]);
 
     t[0] = _mm_shuffle_epi32(t[0], 27);
     t[1] = _mm_shuffle_epi32(t[1], 27);
@@ -507,16 +515,16 @@ static void finalization512(hashState_luffa *state, uint32 *b)
     memset(state->buffer, 0, sizeof state->buffer );
     rnd512(state);
 
-    t[0] = _mm_load_si128(&state->chainv[0]);
-    t[1] = _mm_load_si128(&state->chainv[1]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[2]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[3]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[4]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[5]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[6]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[7]);
-    t[0] = _mm_xor_si128(t[0], state->chainv[8]);
-    t[1] = _mm_xor_si128(t[1], state->chainv[9]);
+    t[0] = chainv[0];
+    t[1] = chainv[1];
+    t[0] = _mm_xor_si128(t[0], chainv[2]);
+    t[1] = _mm_xor_si128(t[1], chainv[3]);
+    t[0] = _mm_xor_si128(t[0], chainv[4]);
+    t[1] = _mm_xor_si128(t[1], chainv[5]);
+    t[0] = _mm_xor_si128(t[0], chainv[6]);
+    t[1] = _mm_xor_si128(t[1], chainv[7]);
+    t[0] = _mm_xor_si128(t[0], chainv[8]);
+    t[1] = _mm_xor_si128(t[1], chainv[9]);
 
     t[0] = _mm_shuffle_epi32(t[0], 27);
     t[1] = _mm_shuffle_epi32(t[1], 27);
@@ -528,9 +536,5 @@ static void finalization512(hashState_luffa *state, uint32 *b)
 
     return;
 }
-
-
-
-
 
 /***************************************************/
