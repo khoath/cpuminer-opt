@@ -112,6 +112,7 @@ bool register_lyra2rev2_algo( algo_gate_t* gate )
 {
   init_lyra2rev2_ctx();
   gate->aes_ni_optimized = true;
+  gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT | AVX2_OPT;
   gate->scanhash   = (void*)&scanhash_lyra2rev2;
   gate->hash       = (void*)&lyra2rev2_hash;
   gate->hash_alt   = (void*)&lyra2rev2_hash;

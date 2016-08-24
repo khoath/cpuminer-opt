@@ -261,12 +261,14 @@ static void neoscrypt_hmac_init_sha256(sha256_hmac_state *st, const uint8_t *key
     /* h(inner || ...) */
     for(i = 0; i < SCRYPT_HASH_BLOCK_SIZE; i++)
       pad[i] ^= 0x36;
+
     neoscrypt_hash_update_sha256(&st->inner, pad, SCRYPT_HASH_BLOCK_SIZE);
 
     /* outer = (key ^ 0x5c) */
     /* h(outer || ...) */
     for(i = 0; i < SCRYPT_HASH_BLOCK_SIZE; i++)
       pad[i] ^= (0x5c ^ 0x36);
+
     neoscrypt_hash_update_sha256(&st->outer, pad, SCRYPT_HASH_BLOCK_SIZE);
 }
 

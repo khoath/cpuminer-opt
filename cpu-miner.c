@@ -2613,10 +2613,16 @@ bool check_cpu_capability ()
      bool sw_has_aes   = false;
      bool sw_has_avx   = false;
      bool sw_has_avx2  = false;
-     bool algo_has_aes = algo_gate.aes_ni_optimized;
-     char* algo_features = algo_gate.optimizations;
+//     bool algo_has_aes = algo_gate.aes_ni_optimized;
+     set_t algo_features = algo_gate.optimizations;
+     bool algo_has_aes = set_incl( AES_OPT, algo_features );
+     bool algo_has_avx = set_incl( AVX_OPT, algo_features );
+     bool algo_has_avx2 = set_incl( AVX2_OPT, algo_features );
      bool use_aes;
      bool use_sse2;
+     bool use_avx;
+     bool use_avx2;
+
      #ifdef __AES__
        sw_has_aes = true;
      #endif
@@ -2660,17 +2666,38 @@ bool check_cpu_capability ()
      if ( sw_has_avx2 ) printf( " AVX2" );
 
      // SSE2 defaults to yes regardless
-     printf("\nAlgo features: %s\n", algo_has_aes ? "SSE2 AES" : "SSE2" );
-//     printf("\nAlgo features: %s\n", algo_features );
+     printf("\nAlgo features: SSE2");
+     if ( algo_has_aes ) printf( " AES" );
+     if ( algo_has_avx ) printf( " AVX" );
+     if ( algo_has_avx2 ) printf( " AVX2" );
+     printf("\n");
 
-     use_aes = cpu_has_aes && cpu_has_avx && sw_has_aes && algo_has_aes;
+//     printf("\nAlgo features: %s\n", algo_has_aes ? "SSE2 AES" : "SSE2" );
+
+     use_aes = cpu_has_aes && sw_has_aes && algo_has_aes;
      // don't use AES algo on non-AES CPU if compiled with AES.
      use_sse2 = cpu_has_sse2 && sw_has_sse2 && !( sw_has_aes && algo_has_aes );
-    
-     if ( use_aes )
-        printf( "Start mining with AES-AVX optimizations...\n\n" );
-     else if ( use_sse2 )
+     use_avx = use_aes && cpu_has_avx && sw_has_avx && algo_has_avx;
+     use_avx2 = use_avx && cpu_has_avx2 && sw_has_avx2 && algo_has_avx2;
+
+     if ( use_sse2 )
         printf( "AES not available, starting mining with SSE2 optimizations...\n\n" );
+     else if ( use_aes )
+     {
+        printf( "Start mining with SSE2 AES" );
+        if ( use_avx )
+        {
+           printf( " AVX" );
+           if ( use_avx2 )
+              printf( " AVX2");
+        }
+        printf( "\n\n" );
+     }
+    
+//     if ( use_aes )
+//        printf( "Start mining with AES-AVX optimizations...\n\n" );
+//     else if ( use_sse2 )
+//        printf( "AES not available, starting mining with SSE2 optimizations...\n\n" );
      else
         printf( CL_RED "Unsupported CPU or SW configuration, miner will likely crash!\n\n" CL_N );
 

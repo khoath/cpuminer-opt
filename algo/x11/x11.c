@@ -266,6 +266,7 @@ int scanhash_x11( int thr_id, struct work *work, uint32_t max_nonce,
 bool register_x11_algo( algo_gate_t* gate )
 {
   gate->aes_ni_optimized = true;
+  gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT | AVX2_OPT;
   init_x11_ctx();
   gate->scanhash  = (void*)&scanhash_x11;
   gate->hash      = (void*)&x11_hash;

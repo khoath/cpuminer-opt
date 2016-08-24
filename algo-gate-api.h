@@ -73,6 +73,36 @@
 //  an algo it is not necessary to define a custom function.
 //
 
+// my hack at creating a set data type using bit masks. Set inclusion,
+// exclusion union and intersection operations are provided for convenience. In // some cases it may be desireable to use boolean algebra directly on the
+// data to perfomr set operations. Sets can be represented as single
+// elements, a bitwise OR of multiple elements, a bitwise OR of multiple
+// set variables or constants, or combinations of the above.
+// Examples:
+//
+// my_set = set_element;
+// another_set = my_set | another_set_element;
+
+typedef  uint32_t set_t;
+
+#define EMPTY_SET 0
+#define SSE2_OPT 1
+#define AES_OPT  2
+#define AVX_OPT  4
+#define AVX2_OPT 8
+
+// return set containing all elements from sets a & b
+inline set_t set_union ( set_t a, set_t b ) { return a | b; }
+
+// return set contained common elements from sets a & b
+inline set_t set_intsec ( set_t a, set_t b) { return a & b; }
+
+// all elements in set a are included in set b
+inline bool set_incl ( set_t a, set_t b ) { return (a & b) == a; }
+
+// no elements in set a are included in set b
+inline bool set_excl ( set_t a, set_t b ) { return (a & b) == 0; }
+
 typedef struct
 {
 //migrate to use work instead of pdata & ptarget, see decred for example.
@@ -107,7 +137,7 @@ bool ( *do_this_thread )          ( int );
 json_t* (*longpoll_rpc_call)      ( CURL*, int*, char* );
 bool ( *stratum_handle_response ) ( json_t* );
 bool aes_ni_optimized;
-char* optimizations;
+set_t optimizations;
 int  ntime_index;
 int  nbits_index;
 int  nonce_index;            // use with caution, see warning below
@@ -158,12 +188,6 @@ int null_scanhash();
 void null_hash    ();
 void null_hash_alt();
 void null_hash_suw();
-
-// optimizations targets, SSE2 is default
-#define SSE2_OPTIMIZATIONS              "SSE2"
-#define SSE2_AES_OPTIMIZATIONS          "SSE2 AES"
-#define SSE2_AES_AVX_OPTIMIZATIONS      "SSE2 AES AVX"
-#define SSE2_AES_AVX_AVX2_OPTIMIZATIONS "SSE2 AES AVX AVX2"
 
 // optional safe targets, default listed first unless noted.
 

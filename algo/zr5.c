@@ -232,6 +232,7 @@ void zr5_display_pok( struct work* work )
 bool register_zr5_algo( algo_gate_t* gate )
 {
     gate->aes_ni_optimized      = true;
+    gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT;
     init_zr5_ctx();
     gate->init_nonce            = (void*)&zr5_init_nonce;
     gate->gen_work_now          = (void*)&zr5_gen_work_now;

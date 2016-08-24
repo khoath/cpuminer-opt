@@ -271,87 +271,6 @@ int scanhash_x11evo( int thr_id, struct work* work, uint32_t max_nonce,
            }
         } while ( n < max_nonce && !work_restart[thr_id].restart );
 
-
-/*
-	if (ptarget[7] == 0) {
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFFFFF) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
-	else if (ptarget[7] <= 0xF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFFFF0) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
-	else if (ptarget[7] <= 0xFF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFFF00) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
-	else if (ptarget[7] <= 0xFFF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFF000) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-
-	}
-	else if (ptarget[7] <= 0xFFFF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFF0000) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-
-	}
-	else
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
-*/
 	*hashes_done = n - first_nonce + 1;
 	pdata[19] = n;
 	return 0;
@@ -360,6 +279,7 @@ int scanhash_x11evo( int thr_id, struct work* work, uint32_t max_nonce,
 bool register_x11evo_algo( algo_gate_t* gate )
 {
   gate->aes_ni_optimized = true;
+  gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT | AVX2_OPT;
   gate->scanhash  = (void*)&scanhash_x11evo;
   gate->hash      = (void*)&x11evo_hash;
   gate->hash_alt  = (void*)&x11evo_hash;

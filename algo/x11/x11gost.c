@@ -59,6 +59,7 @@ void init_sib_ctx()
 
 }
 
+
 void sibhash(void *output, const void *input)
 {
      unsigned char hash[128]; // uint32_t hashA[16], hashB[16];
@@ -144,18 +145,19 @@ void sibhash(void *output, const void *input)
 int scanhash_sib(int thr_id, struct work *work,
 	uint32_t max_nonce, uint64_t *hashes_done)
 {
-        uint32_t endiandata[20] __attribute__((aligned(64)));
-        uint32_t hash64[8] __attribute__((aligned(32)));
         uint32_t *pdata = work->data;
         uint32_t *ptarget = work->target;
+
 	const uint32_t first_nonce = pdata[19];
+	uint32_t _ALIGN(64) endiandata[20];
 	uint32_t nonce = first_nonce;
 	volatile uint8_t *restart = &(work_restart[thr_id].restart);
 
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0cff;
 
-        flipend32_array( endiandata, pdata, 20 );
+	for (int k = 0; k < 19; k++)
+		be32enc(&endiandata[k], pdata[k]);
 
 	const uint32_t Htarg = ptarget[7];
 	do {
@@ -163,16 +165,13 @@ int scanhash_sib(int thr_id, struct work *work,
 		be32enc(&endiandata[19], nonce);
 		sibhash(hash, endiandata);
 
-		if (hash[7] <= Htarg )
-                {
-                  if ( fulltest( hash, ptarget ) )
-                  {
+		if (hash[7] <= Htarg && fulltest(hash, ptarget)) {
 			pdata[19] = nonce;
 			*hashes_done = pdata[19] - first_nonce;
 			return 1;
-                  }
-		  nonce++;
-                }
+		}
+		nonce++;
+
 	} while (nonce < max_nonce && !(*restart));
 
 	pdata[19] = nonce;
@@ -183,6 +182,7 @@ int scanhash_sib(int thr_id, struct work *work,
 bool register_sib_algo( algo_gate_t* gate )
 {
     gate->aes_ni_optimized = true;
+    gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT | AVX2_OPT;
     init_sib_ctx();
     gate->scanhash = (void*)&scanhash_sib;
     gate->hash     = (void*)&sibhash;

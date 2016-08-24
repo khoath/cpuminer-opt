@@ -251,7 +251,7 @@ void init_algo_gate( algo_gate_t* gate )
    gate->longpoll_rpc_call       = (void*)&std_longpoll_rpc_call;
    gate->stratum_handle_response = (void*)&std_stratum_handle_response;
    gate->aes_ni_optimized        = false;
-   gate->optimizations           = SSE2_OPTIMIZATIONS;
+   gate->optimizations           = SSE2_OPT;
    gate->ntime_index             = STD_NTIME_INDEX;
    gate->nbits_index             = STD_NBITS_INDEX;
    gate->nonce_index             = STD_NONCE_INDEX;

@@ -8,6 +8,9 @@
 #include "smmintrin.h"
 
 #include "sha512-avx.h"
+#if ((defined(_WIN64) || defined(__WINDOWS__)))
+#include "hodl-endian.h"
+#endif
 
 //SHA-512 auxiliary functions
 #define Ch(x, y, z) (((x) & (y)) | (~(x) & (z)))
@@ -18,7 +21,7 @@
 #define SIGMA4(x) (ROR64(x, 19) ^ ROR64(x, 61) ^ SHR64(x, 6))
 
 //Rotate right operation
-#define ROR64(a, n) _mm_or_si128(_mm_srli_epi64(a, n), _mm_slli_epi64(a, sizeof(ulong)*8 - n))
+#define ROR64(a, n) _mm_or_si128(_mm_srli_epi64(a, n), _mm_slli_epi64(a, 64 - n))
 
 //Shift right operation
 #define SHR64(a, n) _mm_srli_epi64(a, n)

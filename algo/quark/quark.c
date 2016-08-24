@@ -288,6 +288,7 @@ bool register_quark_algo( algo_gate_t* gate )
 {
   init_quark_ctx();
   gate->aes_ni_optimized = true;
+  gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT;
   gate->scanhash         = (void*)&scanhash_quark;
   gate->hash             = (void*)&quarkhash;
   gate->hash_alt         = (void*)&quarkhash_alt;

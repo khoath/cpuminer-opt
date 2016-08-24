@@ -100,7 +100,7 @@ bool register_hodl_algo( algo_gate_t* gate )
 {
   pthread_barrier_init( &hodl_barrier, NULL, opt_n_threads );
   gate->aes_ni_optimized      = true;
-  gate->optimizations         = SSE2_AES_AVX_AVX2_OPTIMIZATIONS;
+  gate->optimizations         = SSE2_OPT | AES_OPT | AVX_OPT | AVX2_OPT;
   gate->scanhash              = (void*)&hodl_scanhash;
   gate->init_nonce            = (void*)&hodl_init_nonce;
   gate->set_target            = (void*)&hodl_set_target;
