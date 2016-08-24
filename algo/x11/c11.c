@@ -219,7 +219,7 @@ int scanhash_c11( int thr_id, struct work *work, uint32_t max_nonce,
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0cff;
 
-        flipend32_array( endiandata, pdata, 20 );
+        swab32_array( endiandata, pdata, 20 );
 
 	do
         {

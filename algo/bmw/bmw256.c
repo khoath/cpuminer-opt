@@ -34,7 +34,8 @@ int scanhash_bmw(int thr_id, struct work *work,
 
 	uint32_t n = first_nonce;
 
-        flipend32_array( endiandata, pdata, 20 );
+        for (int k = 0; k < 19; k++)
+                be32enc(&endiandata[k], pdata[k]);
 
 	do {
 		be32enc(&endiandata[19], n);

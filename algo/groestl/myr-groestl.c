@@ -68,7 +68,7 @@ int scanhash_myriad(int thr_id, struct work *work,
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0000ff;
 
-        flipend32_array( endiandata, pdata, 20 );
+        swab32_array( endiandata, pdata, 20 );
 
 	do {
 		const uint32_t Htarg = ptarget[7];

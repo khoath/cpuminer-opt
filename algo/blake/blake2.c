@@ -44,7 +44,7 @@ int scanhash_blake2s(int thr_id, struct work *work,
 
 	uint32_t n = first_nonce;
 
-        flipend32_array( endiandata, pdata, 20 );
+        swab32_array( endiandata, pdata, 20 );
 
 	// midstate
 	blake2s_init(&s_midstate, BLAKE2S_OUTBYTES);

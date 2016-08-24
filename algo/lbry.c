@@ -104,7 +104,7 @@ int scanhash_lbry( int thr_id, struct work *work, uint32_t max_nonce,
 	};
 
 	// we need bigendian data...
-        flipend32_array( endiandata, pdata, 32 );
+        swab32_array( endiandata, pdata, 32 );
 
 #ifdef DEBUG_ALGO
 	printf("[%d] Htarg=%X\n", thr_id, Htarg);

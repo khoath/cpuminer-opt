@@ -76,10 +76,10 @@ int scanhash_lyra2rev2(int thr_id, struct work *work,
 	uint32_t nonce = first_nonce;
         const uint32_t Htarg = ptarget[7];
 
-//	if (opt_benchmark)
-//		((uint32_t*)ptarget)[7] = 0x0000ff;
+	if (opt_benchmark)
+		((uint32_t*)ptarget)[7] = 0x0000ff;
 
-        flipend32_array( endiandata, pdata, 20 );
+        swab32_array( endiandata, pdata, 20 );
 
 	do {
 		be32enc(&endiandata[19], nonce);

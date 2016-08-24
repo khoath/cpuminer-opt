@@ -26,10 +26,10 @@ static inline void transform( cubehashParam *sp )
     __m256i y2, y3;
 #endif
 
-    x0 = _mm256_loadu_si256( 0 + sp->x );
-    x1 = _mm256_loadu_si256( 2 + sp->x );   
-    x2 = _mm256_loadu_si256( 4 + sp->x );
-    x3 = _mm256_loadu_si256( 6 + sp->x );
+    x0 = _mm256_load_si256( 0 + sp->x );
+    x1 = _mm256_load_si256( 2 + sp->x );   
+    x2 = _mm256_load_si256( 4 + sp->x );
+    x3 = _mm256_load_si256( 6 + sp->x );
 
     for ( r = 0; r < sp->rounds; ++r )
     { 
@@ -59,10 +59,10 @@ static inline void transform( cubehashParam *sp )
         x3 = _mm256_shuffle_epi32( x3, 0xb1 );
     }
 
-    _mm256_storeu_si256( 0 + sp->x, x0 );
-    _mm256_storeu_si256( 2 + sp->x, x1 );
-    _mm256_storeu_si256( 4 + sp->x, x2 );
-    _mm256_storeu_si256( 6 + sp->x, x3 );
+    _mm256_store_si256( 0 + sp->x, x0 );
+    _mm256_store_si256( 2 + sp->x, x1 );
+    _mm256_store_si256( 4 + sp->x, x2 );
+    _mm256_store_si256( 6 + sp->x, x3 );
 
 #elif defined OPTIMIZE_SSE2
 

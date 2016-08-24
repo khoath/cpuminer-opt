@@ -332,7 +332,7 @@ int scanhash_x17(int thr_id, struct work *work,
 	};
 
 	// we need bigendian data...
-        flipend32_array( endiandata, pdata, 20 );
+        swab32_array( endiandata, pdata, 20 );
 
 #ifdef DEBUG_ALGO
 	if (Htarg != 0)

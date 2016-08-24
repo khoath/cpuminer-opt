@@ -360,7 +360,8 @@ int scanhash_hmq1725( int thr_id, struct work *work, int32_t max_nonce,
 	//const uint32_t Htarg = ptarget[7];
 
 	//we need bigendian data...
-        flipend32_array( endiandata, pdata, 19 );
+        for (int k = 0; k < 32; k++)
+                be32enc(&endiandata[k], pdata[k]);
 
 //	if (opt_debug) 
 //	{

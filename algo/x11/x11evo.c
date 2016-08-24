@@ -243,7 +243,7 @@ int scanhash_x11evo( int thr_id, struct work* work, uint32_t max_nonce,
 	const uint32_t first_nonce = pdata[19];
         const uint32_t Htarg = ptarget[7];
 
-        flipend32_array( endiandata, pdata, 20 );
+        swab32_array( endiandata, pdata, 20 );
 
         uint32_t hmask = 0xFFFFFFFF;
         if ( Htarg  > 0 )

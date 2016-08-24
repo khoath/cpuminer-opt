@@ -148,7 +148,7 @@ int scanhash_qubit(int thr_id, struct work *work,
           { 0xFFFFFFFF, 0xFFFFFFF0, 0xFFFFFF00, 0xFFFFF000, 0xFFFF0000, 0 };
 
 	// we need bigendian data...
-        flipend32_array( endiandata, pdata, 20 );
+        swab32_array( endiandata, pdata, 20 );
 
 #ifdef DEBUG_ALGO
 	printf("[%d] Htarg=%X\n", thr_id, Htarg);

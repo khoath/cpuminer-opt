@@ -164,7 +164,6 @@ static inline void swab32_x2( uint64_t* dst, uint64_t src )
           | ( ( src & 0x000000ff000000ff ) << 24 );
 }
 
-#define flipend32_array swab32_array
 static inline void swab32_array( uint32_t* dst_p, uint32_t* src_p, int n )
 {
    // Assumes source is LE

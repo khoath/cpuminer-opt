@@ -1,4 +1,4 @@
-Release 3.4.0 of cpuminer-opt is available for download with support for
+Release 3.4.1 of cpuminer-opt is available for download with support for
 Windows.
 
 cpuminer-opt now supports 38 algorithms on CPUs with at least SSE2
@@ -10,22 +10,10 @@ CPUs with AES_NI for even greater performance, including the Intel
 Westbridge and newer and AMD equivalent. See the performance
 comparison below.
 
-New in v3.4.0
+New in 3.4.1
 
-- fixed Windows compile error introduced in v3.3.9
-- fixed x11gost, broken in v3.3.7
-- AVX2 optimizations improving many algos:
-   - Lyra2RE  +3%
-   - Lyra2REv2  +19%
-   - x11gost (sib) +6% 
-   - x11evo +2.4% 
-   - c11 6.9% 
-   - x11 +5%
-   - x13 +5% 
-   - x14 +3.6%
-   - x15 +2.4%
-   - x17 +2.8%
-   - qubit 8.4%
+- big AVX2 optmizations for lyra2 +35%, lyra2v2 +11%, AVX also faster
+- fixed hmq1725
 
 Users with non-SSE2 CPUs or who want to mine algos not supported by
 cpuminer-opt may find cpuminer-multi by TPruvot useful.
@@ -58,8 +46,8 @@ c11             784       475          0.99
 myr-gr         1572      1560          2.12
 hmq1725         214       161          0.29
 m7m            85.4      77.4          0.115
-lyra2re        1026       900          1.37
-lyra2rev2      1223       980          1.39
+lyra2re        1380       900          1.37
+lyra2rev2      1350       980          1.39
 cryptonight     290 H     165 H        0.00039
 hodl            600       200          0.00081
 lbry            (4)      2620          3.53
