@@ -72,7 +72,7 @@ int scanhash_pentablake(int thr_id, struct work *work, uint32_t max_nonce,
 	};
 
 	// we need bigendian data...
-        be32enc_array( endiandata, pdata, 19 );
+        flipend32_array( endiandata, pdata, 20 );
 
 #ifdef DEBUG_ALGO
 	if (Htarg != 0)

@@ -263,7 +263,7 @@ int scanhash_quark( int thr_id, struct work *work, uint32_t max_nonce,
 	uint32_t n = pdata[19] - 1;
 	const uint32_t first_nonce = pdata[19];
 
-        be32enc_array( endiandata, pdata, 19 );
+        flipend32_array( endiandata, pdata, 20 );
 
 	do {
 		pdata[19] = ++n;

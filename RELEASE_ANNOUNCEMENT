@@ -1,4 +1,4 @@
-Release 3.3.8 of cpuminer-opt is available for download with support for
+Release 3.3.9 of cpuminer-opt is available for download with support for
 Windows.
 
 cpuminer-opt now supports 38 algorithms on CPUs with at least SSE2
@@ -10,12 +10,14 @@ CPUs with AES_NI for even greater performance, including the Intel
 Westbridge and newer and AMD equivalent. See the performance
 comparison below.
 
-New in 3.3.8:
+New in 3.3.9:
 
-- fixed skein2 algo
-- added lbry algo
-- merged blake2s midstate optimization from cpuminer-multi, +10%
-- added whirlpool & whirlpoolx algos, benchmark tested only
+- Hodl algo AVX2 optimized 218%, AVX2 is available on Haswell and newer CPUs
+- minor bug fixes and enhancements
+
+Note: AVX2 testing was done on Skylake hardware with different compile
+architectures. It has not been tested on any other hardware architectures.
+Please report any problems.
 
 Users with non-SSE2 CPUs or who want to mine algos not supported by
 cpuminer-opt may find cpuminer-multi by TPruvot useful.
@@ -51,7 +53,7 @@ m7m            85.4      77.4          0.115
 lyra2re         995       900          1.34
 lyra2rev2      1028       980          1.38
 cryptonight     290 H     165 H        0.00039
-hodl            275       200(6)       0.00037
+hodl            600       200          0.00037
 lbry            (4)      2620          3.53
 neoscrypt       (4)        32 K        0.043
 argon2          (4)      33.7          0.045
@@ -78,7 +80,7 @@ whirlpool(2)    (4)      1290          1.74
 whirlpoolx(2)   (4)      5110          6.9
 
 Footnotes:
-(1) SSE2 rates are simulated in software (-march=core2).
+(1) SSE2 rates are simulated in software (-march=core2) on an i7.
 (2) Benchmark tested only
 (3) CPU architecture not supported for algo. It won't work.
 (4) AES_NI Optimization not available for CPU artchitecture. Uses SSE2, slower.

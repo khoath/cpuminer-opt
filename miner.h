@@ -156,8 +156,7 @@ static inline void be32enc(void *pp, uint32_t x)
 // This is a poorman's SIMD instruction, use 64 bit instruction to encode 2
 // uint32_t. This function flips endian on two adjacent 32 bit quantities
 // aligned to 64 bits. If source is LE output is BE, and vice versa.
-// Do not use this function if the byte order of the source is not known.
-static inline void flip_endian_32x2( uint64_t* dst, uint64_t src )
+static inline void swab32_x2( uint64_t* dst, uint64_t src )
 {
    *dst =   ( ( src & 0xff000000ff000000 ) >> 24 )
           | ( ( src & 0x00ff000000ff0000 ) >>  8 )
@@ -165,15 +164,14 @@ static inline void flip_endian_32x2( uint64_t* dst, uint64_t src )
           | ( ( src & 0x000000ff000000ff ) << 24 );
 }
 
-// Big endian encode an array of uint32_t, src & dst pointers may be equal
-// to encode in place, or different to make an encoded copy.
-static inline void be32enc_array( uint32_t* dst_p, uint32_t* src_p, int n )
+#define flipend32_array swab32_array
+static inline void swab32_array( uint32_t* dst_p, uint32_t* src_p, int n )
 {
    // Assumes source is LE
    for ( int i=0; i < n/2; i++ )
-      flip_endian_32x2( &((uint64_t*)dst_p)[i], ((uint64_t*)src_p)[i] );
-   if ( n % 2 )
-      be32enc( &dst_p[ n-1 ], src_p[ n-1 ] );
+      swab32_x2( &((uint64_t*)dst_p)[i], ((uint64_t*)src_p)[i] );
+//   if ( n % 2 )
+//      be32enc( &dst_p[ n-1 ], src_p[ n-1 ] );
 }
 
 #if !HAVE_DECL_LE32ENC

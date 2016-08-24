@@ -56,7 +56,8 @@ int scanhash_whirlpool(int thr_id, struct work* work, uint32_t max_nonce, unsign
 //	if (opt_benchmark)
 //		((uint32_t*)ptarget)[7] = 0x0000ff;
 
-        be32enc_array( endiandata, pdata, 19 );
+        for (int i=0; i < 19; i++)
+                be32enc(&endiandata[i], pdata[i]);
 
 	do {
 		const uint32_t Htarg = ptarget[7];

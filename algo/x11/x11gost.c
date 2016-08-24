@@ -155,7 +155,7 @@ int scanhash_sib(int thr_id, struct work *work,
 	if (opt_benchmark)
 		((uint32_t*)ptarget)[7] = 0x0cff;
 
-        be32enc_array( endiandata, pdata, 19 );
+        flipend32_array( endiandata, pdata, 20 );
 
 	const uint32_t Htarg = ptarget[7];
 	do {

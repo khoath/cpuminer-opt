@@ -1262,7 +1262,7 @@ static bool stratum_parse_extranonce(struct stratum_ctx *sctx, json_t *params, i
 	sctx->xnonce2_size = xn2_size;
 	pthread_mutex_unlock(&sctx->work_lock);
 
-	if (pndx == 0 && opt_debug) /* pool dynamic change */
+        if (pndx == 0 && opt_debug) /* pool dynamic change */
 		applog(LOG_DEBUG, "Stratum set nonce %s with extranonce2 size=%d",
 			xnonce1, xn2_size);
 

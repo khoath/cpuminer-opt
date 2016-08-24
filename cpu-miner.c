@@ -735,13 +735,16 @@ static int share_result( int result, struct work *work, const char *reason )
    total_submits = accepted_count + rejected_count;
    accepted_rate = 100. * accepted_count / total_submits;
    if (use_colors)
-	sres = (result ? CL_GRN "yes!" : CL_RED "nooooo");
+	sres = (result ? CL_GRN "yes!" CL_N : CL_RED "nooooo" CL_N );
    else
 	sres = (result ? "(yes!!!)" : "(nooooo)");
    if ( accepted_rate == 100.0 )
       sprintf( accepted_rate_s, "%.0f", accepted_rate );
    else
-      sprintf( accepted_rate_s, "%.1f", accepted_rate );
+       // non-zero rejects, add decimal place but prevent displaying 100.0% due
+       // to rounding up
+       sprintf( accepted_rate_s, "%.1f", ( accepted_rate < 99.9 )
+                                           ? accepted_rate : 99.9 );
 
    scale_hash_for_display ( &hashcount, hc_units );
    scale_hash_for_display ( &hashrate, hr_units );
@@ -770,12 +773,12 @@ static int share_result( int result, struct work *work, const char *reason )
 // le is default
 void std_be_build_stratum_request( char *req, struct work *work )
 {
-   const int ntime_i = 17;
+//   const int ntime_i = 17;
    unsigned char *xnonce2str;
    uint32_t ntime,       nonce;
    char     ntimestr[9], noncestr[9];
-   be32enc( &ntime, work->data[ ntime_i ] );
-   be32enc( &nonce, *( algo_gate.get_nonceptr( work->data ) ) );
+   be32enc( &ntime, work->data[ algo_gate.ntime_index ] );
+   be32enc( &nonce, work->data[ algo_gate.nonce_index ] );
    bin2hex( ntimestr, (char*)(&ntime), sizeof(uint32_t) );
    bin2hex( noncestr, (char*)(&nonce), sizeof(uint32_t) );
    xnonce2str = abin2hex(work->xnonce2, work->xnonce2_len);
@@ -787,12 +790,12 @@ void std_be_build_stratum_request( char *req, struct work *work )
 
 void std_le_build_stratum_request( char *req, struct work *work )
 {
-   const int ntime_i = 17;   
+//   const int ntime_i = 17;   
    unsigned char *xnonce2str;
    uint32_t ntime,       nonce;
    char     ntimestr[9], noncestr[9];
-   le32enc( &ntime, work->data[ ntime_i ] );
-   le32enc( &nonce, *( algo_gate.get_nonceptr( work->data ) ) );
+   le32enc( &ntime, work->data[ algo_gate.ntime_index ] );
+   le32enc( &nonce, work->data[ algo_gate.nonce_index ] );
    bin2hex( ntimestr, (char*)(&ntime), sizeof(uint32_t) );
    bin2hex( noncestr, (char*)(&nonce), sizeof(uint32_t) );
    xnonce2str = abin2hex(work->xnonce2, work->xnonce2_len);
@@ -1439,24 +1442,22 @@ static bool wanna_mine(int thr_id)
 
 bool std_gen_work_now( int thr_id, struct work *work, struct work *g_work )
 {
-   const int wkcmp_sz = 76;  // nonce_index * sizeof(uint32_t);
+//   const int wkcmp_sz = 76;  // nonce_index * sizeof(uint32_t);
    uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
-   return ( ( *(algo_gate.get_nonceptr( work->data ) ) >= end_nonce )
-            && !( memcmp( work->data, g_work->data, wkcmp_sz ) ) );
+   return ( work->data[ algo_gate.nonce_index ] >= end_nonce )
+            && !( memcmp( work->data, g_work->data, algo_gate.work_cmp_size ) );
 }
 
 bool jr2_gen_work_now( int thr_id, struct work *work, struct work *g_work )
 {
-// const int wkcmp_sz         = 76;   
-   const int nonce_byte_i = 39;
-   const int wkcmp2_i     = 43;  // nonce_byte_index + sizeof(uint32_t)
-   const int wkcmp2_sz    = 33;  // wkcmp_sz - wkcmp2-index
+   const int nonce_byte_index = algo_gate.nonce_index;
    uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
-   // byte data[ 0..38, 43..75 ], skip over misaligned nonce
-   return ( *(algo_gate.get_nonceptr( work->data ) ) >= end_nonce
-         && !(   memcmp( work->data, g_work->data, nonce_byte_i )
-             ||  memcmp( ((uint8_t*) work->data)   + wkcmp2_i,
-                         ((uint8_t*) g_work->data) + wkcmp2_i, wkcmp2_sz ) ) );
+   // byte data[ 0..38, 43..75 ], skip over misaligned nonce [39..42]
+   return ( work->data[ nonce_byte_index ] >= end_nonce )
+         && !(   memcmp( work->data, g_work->data, nonce_byte_index )
+             ||  memcmp( ((uint8_t*) work->data)   + JR2_WORK_CMP_INDEX_2,
+                         ((uint8_t*) g_work->data) + JR2_WORK_CMP_INDEX_2,
+                                                       JR2_WORK_CMP_SIZE_2 ) );
 }
 
 static void *miner_thread( void *userdata )
@@ -1627,7 +1628,7 @@ static void *miner_thread( void *userdata )
           if (remain < max64) max64 = remain;
        }
        // max64
-       uint32_t work_nonce = *( algo_gate.get_nonceptr( work.data ) );
+       uint32_t work_nonce = *(algo_gate.get_nonceptr( work.data ) );
        max64 *= thr_hashrates[thr_id];
        if ( max64 <= 0)
           max64 = (int64_t)algo_gate.get_max64();
@@ -2598,7 +2599,7 @@ static void show_credits()
 	printf("     BTC donation address: 12tdvfF7KmAsihBXQXynT6E6th2c2pByTT\n");
         printf("     Forked from TPruvot's cpuminer-multi with credits\n");
         printf("     to Lucas Jones, elmad, palmd, djm34, pooler, ig0tik3d,\n");
-        printf("     Wolf0 and Jeff Garzik.\n\n");
+        printf("     Wolf0, Jeff Garzik and Optiminer.\n\n");
 }
 
 bool check_cpu_capability ()
@@ -2613,6 +2614,7 @@ bool check_cpu_capability ()
      bool sw_has_avx   = false;
      bool sw_has_avx2  = false;
      bool algo_has_aes = algo_gate.aes_ni_optimized;
+     char* algo_features = algo_gate.optimizations;
      bool use_aes;
      bool use_sse2;
      #ifdef __AES__
@@ -2659,6 +2661,7 @@ bool check_cpu_capability ()
 
      // SSE2 defaults to yes regardless
      printf("\nAlgo features: %s\n", algo_has_aes ? "SSE2 AES" : "SSE2" );
+//     printf("\nAlgo features: %s\n", algo_features );
 
      use_aes = cpu_has_aes && cpu_has_avx && sw_has_aes && algo_has_aes;
      // don't use AES algo on non-AES CPU if compiled with AES.
@@ -2669,7 +2672,7 @@ bool check_cpu_capability ()
      else if ( use_sse2 )
         printf( "AES not available, starting mining with SSE2 optimizations...\n\n" );
      else
-        printf( "Unsupported CPU or SW configuration, miner will likely crash!\n\n" );
+        printf( CL_RED "Unsupported CPU or SW configuration, miner will likely crash!\n\n" CL_N );
 
      return true;
 }

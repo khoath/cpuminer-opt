@@ -31,7 +31,8 @@ int scanhash_keccak(int thr_id, struct work *work,
 	uint32_t _ALIGN(32) hash64[8];
 	uint32_t endiandata[32];
 
-        be32enc_array( endiandata, pdata, 19 );
+        for (int i=0; i < 19; i++) 
+                be32enc(&endiandata[i], pdata[i]);
 
 	do {
 	

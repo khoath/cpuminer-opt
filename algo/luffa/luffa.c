@@ -34,7 +34,8 @@ int scanhash_luffa(int thr_id, struct work *work,
 
 	uint32_t n = first_nonce;
 
-        be32enc_array( endiandata, pdata, 19 );
+        for (int i=0; i < 19; i++) 
+                be32enc(&endiandata[i], pdata[i]);
 
 	do {
 		be32enc(&endiandata[19], n);

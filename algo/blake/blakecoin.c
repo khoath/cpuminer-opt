@@ -63,7 +63,10 @@ int scanhash_blakecoin(int thr_id, struct work *work, uint32_t max_nonce,
 		HTarget = 0x7f;
 
 	// we need big endian data...
-        be32enc_array( endiandata, pdata, 19 );
+//        be32enc_array( endiandata, pdata, 19 );
+        for (int kk=0; kk < 19; kk++) 
+                be32enc(&endiandata[kk], ((uint32_t*)pdata)[kk]);
+
 
 #ifdef DEBUG_ALGO
 	applog(LOG_DEBUG,"[%d] Target=%08x %08x", thr_id, ptarget[6], ptarget[7]);

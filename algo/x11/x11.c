@@ -236,7 +236,7 @@ int scanhash_x11( int thr_id, struct work *work, uint32_t max_nonce,
         };
 
         // big endian encode 0..18 uint32_t, 64 bits at a time
-        be32enc_array( endiandata, pdata, 19 );
+        flipend32_array( endiandata, pdata, 20 );
 
         for (int m=0; m < 6; m++) 
           if (Htarg <= htmax[m])
