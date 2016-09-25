@@ -5,54 +5,46 @@ This is a multi-threaded CPU miner, fork of [pooler](//github.com/pooler)'s cpum
 
 This specific fork has AES optimizations for many algorithms, they are automatically used if your compiler, your CPU and the algorithm in question support it.
 
+
 How to build
 ------------
 
 ```bash
 git clone https://github.com/hmage/cpuminer-opt
 cd cpuminer-opt
-sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev libjansson-dev libgmp-dev automake
+sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev libjansson-dev libgmp-dev automake g++
 ./build.sh
 ```
 
-Building on Linux, see below for Windows.
+Instead of ./build.sh you can execute the following commands :
 
-Dependencies
-
-build-essential  (for Ubuntu, Development Tools package group on Fedora)
-automake
-libjansson-dev
-libgmp-dev
-libcurl4-openssl-dev
-libssl-dev
-pthreads
-zlib
-
-tar xvzf [file.tar.gz]
-cd [file]
-
-Run build.sh to build on Linux or execute the following commands.
-
+```bash
 ./autogen.sh
 CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-curl
 make
+```
 
-Start mining.
+To start mining
 
+```bash
 ./cpuminer -a algo ...
+```
 
-Building on Windows prerequisites:
+
+Building on Windows
+-------------------
+
+prerequisites :
 
 msys
 mingw_w64
-Visual C++ redistributable 2008 X64
-openssl, not sure about this
+pthreads, curl and openssl
 
 Install msys and mingw_w64, only needed once.
 
 Unpack msys into C:\msys or your preferred directory.
 
-Install mingw__w64 from win-builds.
+Install mingw_w64 from win-builds.
 Follow instructions, check "msys or cygwin" and "x86_64" and accept default
 existing msys instalation.
 
@@ -70,6 +62,7 @@ or similar Windows program.
 
 In msys shell cd to miner directory.
 cd /c/path/to/cpuminer-opt
+
 
 Requirements
 ------------
