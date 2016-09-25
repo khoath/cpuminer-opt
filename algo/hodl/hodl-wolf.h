@@ -10,8 +10,8 @@
 #define GARBAGE_SIZE		(1 << 30)
 #define GARBAGE_CHUNK_SIZE	(1 << 6)
 #define GARBAGE_SLICE_SIZE	(1 << 12)
-#define TOTAL_CHUNKS		(1 << 24)		// GARBAGE_SIZE / GARBAGE_CHUNK_SIZE
-#define COMPARE_SIZE		(1 << 18)		// GARBAGE_SIZE / GARBAGE_SLICE_SIZE
+#define TOTAL_CHUNKS		(1 << 24)   // GARBAGE_SIZE / GARBAGE_CHUNK_SIZE
+#define COMPARE_SIZE		(1 << 18)   // GARBAGE_SIZE / GARBAGE_SLICE_SIZE
 
 typedef union _CacheEntry
 {
@@ -21,7 +21,6 @@ typedef union _CacheEntry
 
 int scanhash_hodl_wolf( int thr_id, struct work* work, uint32_t max_nonce,
                    uint64_t *hashes_done );
-//                   unsigned long *hashes_done, CacheEntry *scratchpad );
 
 void GenRandomGarbage( CacheEntry *Garbage, uint32_t *pdata, int thr_id);
 

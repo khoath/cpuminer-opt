@@ -126,11 +126,6 @@ static inline void cpuid(int functionnumber, int output[4]) {
 #define cpuid(fn, out) out[0] = 0;
 #endif
 
-// I presume an assembly function needs to be inline and
-// requires a wrapper to work like a normal function
-void processor_id ( int functionnumber, int output[4] )
-{ cpuid( functionnumber, output ); }
-  
 void cpu_getname(char *outbuf, size_t maxsz)
 {
    memset(outbuf, 0, maxsz);
@@ -238,22 +233,22 @@ void cpu_getmodelid(char *outbuf, size_t maxsz)
 // http://en.wikipedia.org/wiki/CPUID
 
 // CPUID commands
-#define VENDOR_ID                  (0)
-#define PROCESSOR_INFO             (1)
-#define CACHE_TLB_DESCRIPTOR       (2)
-#define EXTENDED_FEATURES          (7)
-#define HIGHEST_EXTENDED_FUNCTION  (0x80000000)
-#define EXTENDED_PROCESSOR_INFO    (0x80000001)
-#define PROCESSOR_BRAND_STRING_1   (0x80000002)
-#define PROCESSOR_BRAND_STRING_2   (0x80000003)
-#define PROCESSOR_BRAND_STRING_3   (0x80000004)
+#define VENDOR_ID            (0)
+#define CPU_INFO             (1)
+#define CACHE_TLB_DESCRIPTOR (2)
+#define EXTENDED_FEATURES    (7)
+#define HIGHEST_EXT_FUNCTION (0x80000000)
+#define EXTENDED_CPU_INFO    (0x80000001)
+#define CPU_BRAND_1          (0x80000002)
+#define CPU_BRAND_2          (0x80000003)
+#define CPU_BRAND_3          (0x80000004)
 
 #define EAX_Reg  (0)
 #define EBX_Reg  (1)
 #define ECX_Reg  (2)
 #define EDX_Reg  (3)
 
-#define XSAVE_Flag    (1 << 26)
+#define XSAVE_Flag    (1 << 26) // ECX
 #define OSXSAVE_Flag  (1 << 27)
 #define AVX1_Flag     (1 << 28)
 #define XOP_Flag      (1 << 11)
@@ -262,7 +257,7 @@ void cpu_getmodelid(char *outbuf, size_t maxsz)
 #define SSE42_Flag    (1 << 20)
 
 #define SSE_Flag      (1 << 25) // EDX
-#define SSE2_Flag     (1 << 26) // EDX
+#define SSE2_Flag     (1 << 26) 
 
 #define AVX2_Flag     (1 << 5) // ADV EBX
 
@@ -270,43 +265,49 @@ void cpu_getmodelid(char *outbuf, size_t maxsz)
 #define AVX1_mask     (AVX1_Flag|XSAVE_Flag|OSXSAVE_Flag)
 #define FMA3_mask     (FMA3_Flag|AVX1_mask)
 
-bool has_sse2()
+static inline bool has_sse2_()
 {
 #ifdef __arm__
     return false;
 #else
     int cpu_info[4] = { 0 };
-    cpuid( PROCESSOR_INFO, cpu_info );
+    cpuid( CPU_INFO, cpu_info );
     return cpu_info[ EDX_Reg ] & SSE2_Flag;
 #endif
 }
 
+bool has_sse2() { return has_sse2_(); } 
+
 // nehalem and above, no AVX1 on nehalem
-bool has_aes_ni()
+static inline bool has_aes_ni_()
 {
 #ifdef __arm__
 	return false;
 #else
 	int cpu_info[4] = { 0 };
-        cpuid( PROCESSOR_INFO, cpu_info );
+        cpuid( CPU_INFO, cpu_info );
 	return cpu_info[ ECX_Reg ] & AES_Flag;
 #endif
 }
 
+bool has_aes_ni() { return has_aes_ni_(); }
+
 // westmere and above
-bool has_avx1()
+static inline bool has_avx1_()
 {
 #ifdef __arm__
         return false;
 #else
         int cpu_info[4] = { 0 };
-        cpuid( PROCESSOR_INFO, cpu_info );
+        cpuid( CPU_INFO, cpu_info );
         return ( ( cpu_info[ ECX_Reg ] & AVX1_mask ) == AVX1_mask );
 #endif
 }
 
+bool has_avx1() { return has_avx1_(); }
+
 // haswell and above
-bool has_avx2()
+static inline bool has_avx2_()
 {
 #ifdef __arm__
     return false;
@@ -317,55 +318,65 @@ bool has_avx2()
 #endif
 }
 
-bool has_xop()
+bool has_avx2() { return has_avx2_(); }
+
+static inline bool has_xop_()
 {
 #ifdef __arm__
         return false;
 #else
         int cpu_info[4] = { 0 };
-        cpuid( PROCESSOR_INFO, cpu_info );
+        cpuid( CPU_INFO, cpu_info );
         return cpu_info[ ECX_Reg ] & XOP_Flag;
 #endif
 }
 
-bool has_fma3()
+bool has_xop() { return has_xop_(); }
+
+static inline bool has_fma3_()
 {
 #ifdef __arm__
         return false;
 #else
         int cpu_info[4] = { 0 };
-        cpuid( PROCESSOR_INFO, cpu_info );
+        cpuid( CPU_INFO, cpu_info );
         return ( ( cpu_info[ ECX_Reg ] & FMA3_mask ) == FMA3_mask );
 #endif
 }
 
-bool has_sse42()
+bool has_fma3() { return has_fma3_(); }
+
+static inline bool has_sse42_()
 {
 #ifdef __arm__
         return false;
 #else
         int cpu_info[4] = { 0 };
-        cpuid( PROCESSOR_INFO, cpu_info );
+        cpuid( CPU_INFO, cpu_info );
         return cpu_info[ ECX_Reg ] & SSE42_Flag;
 #endif
 }
 
-bool has_sse()
+bool has_sse42() { return has_sse42_(); }
+
+static inline bool has_sse_()
 {
 #ifdef __arm__
         return false;
 #else
         int cpu_info[4] = { 0 };
-        cpuid( PROCESSOR_INFO, cpu_info );
+        cpuid( CPU_INFO, cpu_info );
         return cpu_info[ EDX_Reg ] & SSE_Flag;
 #endif
 }
+
+bool has_sse() { return has_sse_(); }
 
 uint32_t cpuid_get_highest_function_number()
 {
   uint32_t cpu_info[4] = {0};
   cpuid( VENDOR_ID, cpu_info);
-  return cpu_info[ EAX_Reg];
+  return cpu_info[ EAX_Reg ];
 }
 
 void cpuid_get_highest_function( char* s )
@@ -386,7 +397,7 @@ void cpuid_get_highest_function( char* s )
       strcpy( s, "Core2" );
       break;
     default:
-      sprintf( s, "undef %x", fn );
+      sprintf( s, "undefined %x", fn );
   }
 }
 
@@ -397,45 +408,45 @@ void cpu_bestfeature(char *outbuf, int maxsz)
 #else
 	int cpu_info[4] = { 0 };
 	int cpu_info_adv[4] = { 0 };
-	cpuid( PROCESSOR_INFO, cpu_info );
+	cpuid( CPU_INFO, cpu_info );
 	cpuid( EXTENDED_FEATURES, cpu_info_adv );
 
-        if ( has_avx1() && has_avx2() )
+        if ( has_avx1_() && has_avx2_() )
               sprintf(outbuf, "AVX2");
-        else if ( has_avx1() )
+        else if ( has_avx1_() )
               sprintf(outbuf, "AVX1");
-        else if ( has_fma3() )
+        else if ( has_fma3_() )
               sprintf(outbuf, "FMA3");
-        else if ( has_xop() )
-                sprintf(outbuf, "XOP");
-        else if ( has_sse42() )
-                sprintf(outbuf, "SSE42");
-        else if ( has_sse2() )
-                sprintf(outbuf, "SSE2");
-        else if ( has_sse() )
-                sprintf(outbuf, "SSE");
+        else if ( has_xop_() )
+              sprintf(outbuf, "XOP");
+        else if ( has_sse42_() )
+              sprintf(outbuf, "SSE42");
+        else if ( has_sse2_() )
+              sprintf(outbuf, "SSE2");
+        else if ( has_sse_() )
+              sprintf(outbuf, "SSE");
         else
-                *outbuf = '\0';
+              *outbuf = '\0';
            
 #endif
 }
 
 void cpu_brand_string( char* s )
 {
+#ifdef __arm__
+        sprintf( s, "ARM" );
+#else
     int cpu_info[4] = { 0 };
-    int num_ext_ids;
     cpuid( VENDOR_ID, cpu_info );
     if ( cpu_info[ EAX_Reg ] >= 4 )
     {
-        cpuid( PROCESSOR_BRAND_STRING_1, cpu_info );
+        cpuid( CPU_BRAND_1, cpu_info );
         memcpy( s, cpu_info, sizeof(cpu_info) );
-        cpuid( PROCESSOR_BRAND_STRING_2, cpu_info );
+        cpuid( CPU_BRAND_2, cpu_info );
         memcpy( s + 16, cpu_info, sizeof(cpu_info) );
-        cpuid( PROCESSOR_BRAND_STRING_3, cpu_info );
+        cpuid( CPU_BRAND_3, cpu_info );
         memcpy( s + 32, cpu_info, sizeof(cpu_info) );
     }
+#endif
 }    
-
-
-
 

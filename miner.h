@@ -47,12 +47,14 @@
 # endif
 #endif
 
+/*
 #ifndef min
 #define min(a,b) (a>b ? b : a)
 #endif
 #ifndef max 
 #define max(a,b) (a<b ? b : a)
 #endif
+*/
 
 //#ifdef HAVE_ALLOCA_H
 //# include <alloca.h>
@@ -152,6 +154,26 @@ static inline void be32enc(void *pp, uint32_t x)
 	p[0] = (x >> 24) & 0xff;
 }
 #endif
+
+// This is a poorman's SIMD instruction, use 64 bit instruction to encode 2
+// uint32_t. This function flips endian on two adjacent 32 bit quantities
+// aligned to 64 bits. If source is LE output is BE, and vice versa.
+static inline void swab32_x2( uint64_t* dst, uint64_t src )
+{
+   *dst =   ( ( src & 0xff000000ff000000 ) >> 24 )
+          | ( ( src & 0x00ff000000ff0000 ) >>  8 )
+          | ( ( src & 0x0000ff000000ff00 ) <<  8 )
+          | ( ( src & 0x000000ff000000ff ) << 24 );
+}
+
+static inline void swab32_array( uint32_t* dst_p, uint32_t* src_p, int n )
+{
+   // Assumes source is LE
+   for ( int i=0; i < n/2; i++ )
+      swab32_x2( &((uint64_t*)dst_p)[i], ((uint64_t*)src_p)[i] );
+//   if ( n % 2 )
+//      be32enc( &dst_p[ n-1 ], src_p[ n-1 ] );
+}
 
 #if !HAVE_DECL_LE32ENC
 static inline void le32enc(void *pp, uint32_t x)
@@ -302,11 +324,13 @@ bool   has_aes_ni( void );
 bool   has_avx1();
 bool   has_avx2();
 bool   has_sse2();
+bool   has_xop();
+bool   has_fma3();
+bool   has_sse42();
+bool   has_sse();
 void   cpu_bestcpu_feature( char *outbuf, size_t maxsz );
 void   cpu_getname(char *outbuf, size_t maxsz);
 void   cpu_getmodelid(char *outbuf, size_t maxsz);
-void   processor_id ( int functionnumber, int output[4] );
-
 
 float cpu_temp( int core );
 
@@ -330,6 +354,7 @@ struct work {
 struct stratum_job {
 	char *job_id;
 	unsigned char prevhash[32];
+        unsigned char claim[32]; // lbry
 	size_t coinbase_size;
 	unsigned char *coinbase;
 	unsigned char *xnonce2;
@@ -463,6 +488,7 @@ enum algos {
         ALGO_HMQ1725,
         ALGO_HODL,
         ALGO_KECCAK,
+        ALGO_LBRY,
         ALGO_LUFFA,       
         ALGO_LYRA2RE,       
         ALGO_LYRA2REV2,   
@@ -482,6 +508,9 @@ enum algos {
         ALGO_SKEIN2,      
         ALGO_S3,          
         ALGO_VANILLA,
+        ALGO_VELTOR,
+        ALGO_WHIRLPOOL,
+        ALGO_WHIRLPOOLX,
         ALGO_X11,
         ALGO_X11EVO,         
         ALGO_X11GOST,
@@ -513,6 +542,7 @@ static const char *algo_names[] = {
         "hmq1725",
         "hodl",
         "keccak",
+        "lbry",
         "luffa",
         "lyra2re",
         "lyra2rev2",
@@ -532,6 +562,9 @@ static const char *algo_names[] = {
         "skein2",
         "s3",
         "vanilla",
+        "veltor",
+        "whirlpool",
+        "whirlpoolx",
         "x11",
         "x11evo",
         "x11gost",
@@ -608,19 +641,20 @@ Options:\n\
                           bmw          BMW 256\n\
                           c11          flax\n\
                           cryptolight  Cryptonight-light\n\
-                          cryptonight  Monero\n\
+                          cryptonight  Monero (XMR)\n\
                           decred\n\
                           drop         Dropcoin\n\
                           fresh        Fresh\n\
                           groestl      groestl\n\
+                          heavy        Heavy\n\
                           hmq1725      Espers\n\
                           hodl         hodlcoin\n\
-                          heavy        Heavy\n\
                           keccak       Keccak\n\
+                          lbry         LBC, LBRY Credits\n\
                           luffa        Luffa\n\
                           lyra2re      lyra2\n\
                           lyra2rev2    lyrav2\n\
-                          m7m\n\
+                          m7m          Magi (XMG)\n\
                           myr-gr       Myriad-Groestl\n\
                           neoscrypt    NeoScrypt(128, 2, 1)\n\
                           nist5        Nist5\n\
@@ -637,6 +671,9 @@ Options:\n\
                           skein2       Double Skein (Woodcoin)\n\
                           s3           S3\n\
                           vanilla      blake256r8vnl (VCash)\n\
+                          veltor\n\
+                          whirlpool\n\
+                          whirlpoolx\n\
                           x11          X11\n\
                           x11evo       Revolvercoin\n\
                           x11gost      sib (SibCoin)\n\

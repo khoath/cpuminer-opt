@@ -15,7 +15,61 @@ sudo apt-get install build-essential libssl-dev libcurl4-openssl-dev libjansson-
 ./build.sh
 ```
 
-The resulting binary will be named `cpuminer`.
+Building on Linux, see below for Windows.
+
+Dependencies
+
+build-essential  (for Ubuntu, Development Tools package group on Fedora)
+automake
+libjansson-dev
+libgmp-dev
+libcurl4-openssl-dev
+libssl-dev
+pthreads
+zlib
+
+tar xvzf [file.tar.gz]
+cd [file]
+
+Run build.sh to build on Linux or execute the following commands.
+
+./autogen.sh
+CFLAGS="-O3 -march=native -Wall" CXXFLAGS="$CFLAGS -std=gnu++11" ./configure --with-curl
+make
+
+Start mining.
+
+./cpuminer -a algo ...
+
+Building on Windows prerequisites:
+
+msys
+mingw_w64
+Visual C++ redistributable 2008 X64
+openssl, not sure about this
+
+Install msys and mingw_w64, only needed once.
+
+Unpack msys into C:\msys or your preferred directory.
+
+Install mingw__w64 from win-builds.
+Follow instructions, check "msys or cygwin" and "x86_64" and accept default
+existing msys instalation.
+
+Open a msys shell by double clicking on msys.bat.
+Note that msys shell uses linux syntax for file specifications, "C:\" is
+mounted at "/c/".
+
+Add mingw bin directory to PATH variable
+PATH="/c/msys/opt/windows_64/bin/:$PATH"
+
+Instalation complete, compile cpuminer-opt
+
+Unpack cpuminer-opt source files using tar from msys shell, or using 7zip
+or similar Windows program.
+
+In msys shell cd to miner directory.
+cd /c/path/to/cpuminer-opt
 
 Requirements
 ------------

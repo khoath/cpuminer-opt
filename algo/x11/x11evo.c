@@ -19,8 +19,8 @@
 #include "algo/echo/sph_echo.h"
 
 #ifdef NO_AES_NI
-  #include "algo/groestl/sse2/grso.h"
-  #include "algo/groestl/sse2/grso-macro.c"
+//  #include "algo/groestl/sse2/grso.h"
+//  #include "algo/groestl/sse2/grso-macro.c"
 #else
   #include "algo/groestl/aes_ni/hash-groestl.h"
   #include "algo/echo/aes_ni/hash_api.h"
@@ -232,99 +232,45 @@ static inline void x11evo_hash( void *state, const void *input )
 
 static const uint32_t diff1targ = 0x0000ffff;
 
-
 int scanhash_x11evo( int thr_id, struct work* work, uint32_t max_nonce,
                      unsigned long *hashes_done )
 {
+        uint32_t endiandata[20] __attribute__((aligned(64)));
+        uint32_t hash64[8] __attribute__((aligned(32)));
         uint32_t *pdata = work->data;
         uint32_t *ptarget = work->target;
 	uint32_t n = pdata[19] - 1;
 	const uint32_t first_nonce = pdata[19];
-	uint32_t hash64[8] __attribute__((aligned(32)));
-	uint32_t endiandata[32];
+        const uint32_t Htarg = ptarget[7];
 
-	int kk = 0;
-	for (; kk < 32; kk++) {
-		be32enc(&endiandata[kk], ((uint32_t*)pdata)[kk]);
-	};
-	if (ptarget[7] == 0) {
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFFFFF) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
-	else if (ptarget[7] <= 0xF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFFFF0) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
-	else if (ptarget[7] <= 0xFF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFFF00) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
-	else if (ptarget[7] <= 0xFFF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFFF000) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
+        swab32_array( endiandata, pdata, 20 );
 
-	}
-	else if (ptarget[7] <= 0xFFFF)
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (((hash64[7] & 0xFFFF0000) == 0) &&
-				fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
+        uint32_t hmask = 0xFFFFFFFF;
+        if ( Htarg  > 0 )
+         if ( Htarg <= 0xF )
+            hmask = 0xFFFFFFF0;
+         else if ( Htarg <= 0xFF )
+            hmask = 0xFFFFFF00;
+         else if ( Htarg <= 0xFFF )
+            hmask = 0xFFFF000;
+         else if ( Htarg <= 0xFFFF )
+            hmask = 0xFFFF000;
 
-	}
-	else
-	{
-		do {
-			pdata[19] = ++n;
-			be32enc(&endiandata[19], n);
-			x11evo_hash(hash64, &endiandata );
-			if (fulltest(hash64, ptarget)) {
-				*hashes_done = n - first_nonce + 1;
-				return true;
-			}
-		} while (n < max_nonce && !work_restart[thr_id].restart);
-	}
+        do
+        {
+          pdata[19] = ++n;
+          be32enc( &endiandata[19], n );
+          x11evo_hash( hash64, &endiandata );
+          if ( ( hash64[7] & hmask ) == 0 )
+          {
+             if ( fulltest( hash64, ptarget ) )
+             {
+                 *hashes_done = n - first_nonce + 1;
+                 return true;
+             }
+           }
+        } while ( n < max_nonce && !work_restart[thr_id].restart );
+
 	*hashes_done = n - first_nonce + 1;
 	pdata[19] = n;
 	return 0;
@@ -332,7 +278,7 @@ int scanhash_x11evo( int thr_id, struct work* work, uint32_t max_nonce,
 
 bool register_x11evo_algo( algo_gate_t* gate )
 {
-  gate->aes_ni_optimized = true;
+  gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT | AVX2_OPT;
   gate->scanhash  = (void*)&scanhash_x11evo;
   gate->hash      = (void*)&x11evo_hash;
   gate->hash_alt  = (void*)&x11evo_hash;

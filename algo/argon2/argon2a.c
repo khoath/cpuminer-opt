@@ -55,8 +55,7 @@ int scanhash_argon2(int thr_id, struct work* work, uint32_t max_nonce, uint64_t 
 	const uint32_t Htarg = ptarget[7];
 	uint32_t nonce = first_nonce;
 
-	for (int k=0; k < 19; k++)
-		be32enc(&endiandata[k], pdata[k]);
+        swab32_array( endiandata, pdata, 20 );
 
 	do {
 		be32enc(&endiandata[19], nonce);
@@ -82,6 +81,7 @@ int64_t argon2_get_max64 ()
 
 bool register_argon2_algo( algo_gate_t* gate )
 {
+  gate->optimizations = SSE2_OPT | AES_OPT | AVX_OPT | AVX2_OPT;
   gate->scanhash        = (void*)&scanhash_argon2;
   gate->hash            = (void*)&argon2hash;
   gate->gen_merkle_root = (void*)&SHA256_gen_merkle_root;

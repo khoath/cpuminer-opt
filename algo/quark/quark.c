@@ -256,19 +256,14 @@ void quarkhash_alt(void *state, const void *input)
 int scanhash_quark( int thr_id, struct work *work, uint32_t max_nonce,
                     uint64_t *hashes_done)
 {
+        uint32_t endiandata[20] __attribute__((aligned(64)));
+        uint32_t hash64[8] __attribute__((aligned(32)));
         uint32_t *pdata = work->data;
         uint32_t *ptarget = work->target;
 	uint32_t n = pdata[19] - 1;
 	const uint32_t first_nonce = pdata[19];
 
-	uint32_t hash64[8] __attribute__((aligned(32)));
-	uint32_t endiandata[32];
-
-	int kk=0;
-	for (; kk < 32; kk++)
-	{
-		be32enc(&endiandata[kk], ((uint32_t*)pdata)[kk]);
-	};
+        swab32_array( endiandata, pdata, 20 );
 
 	do {
 		pdata[19] = ++n;
@@ -292,7 +287,7 @@ int scanhash_quark( int thr_id, struct work *work, uint32_t max_nonce,
 bool register_quark_algo( algo_gate_t* gate )
 {
   init_quark_ctx();
-  gate->aes_ni_optimized = true;
+  gate->optimizations = SSE2_OPT | AES_OPT;
   gate->scanhash         = (void*)&scanhash_quark;
   gate->hash             = (void*)&quarkhash;
   gate->hash_alt         = (void*)&quarkhash_alt;

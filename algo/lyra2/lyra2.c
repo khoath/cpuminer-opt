@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
+#include "compat.h"
 #include "lyra2.h"
 #include "sponge.h"
 
@@ -133,7 +133,7 @@ int LYRA2(void *K, int64_t kLen, const void *pwd, int32_t pwdlen, const void *sa
 
 	//======================= Initializing the Sponge State ====================//
 	//Sponge state: 16 uint64_t, BLOCK_LEN_INT64 words of them for the bitrate (b) and the remainder for the capacity (c)
-	uint64_t state[16];
+	uint64_t _ALIGN(256) state[16];
 	initState(state);
 	//==========================================================================/
 
